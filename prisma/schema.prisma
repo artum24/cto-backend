@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "auth"]
+}
+
+model Company {
+  id           BigInt     @id @default(autoincrement()) @db.BigInt
+  title        String?
+  company_type Int?
+  city         String?
+  address      String?
+  city_ref     String?
+  address_ref  String?
+  house_number String?
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+
+  users      User[]
+  clients    Client[]
+  storages   Storage[]
+  invites    Invitation[]
+  workspaces Workspace[]
+
+  @@schema("public")
+}
+
+model Client {
+  id         BigInt    @id @default(autoincrement()) @db.BigInt
+  name       String?
+  phone      String?
+  archived   Boolean   @default(false)
+  company_id BigInt?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  company Company? @relation(fields: [company_id], references: [id])
+  vehicles Vehicle[]
+
+  @@index([company_id, phone], name: "index_clients_on_company_id_and_phone")
+  @@index([company_id], name: "index_clients_on_company_id")
+
+  @@schema("public")
+}
+
+model Vehicle {
+  id                   BigInt    @id @default(autoincrement()) @db.BigInt
+  vehicle_year         Int
+  vehicle_distance     Int?
+  vehicle_number       String?
+  vehicle_vin_code     String?
+  vehicle_transmission String?
+  client_id            BigInt
+  vehicle_type         Int?
+  vehicle_make_id      BigInt?
+  vehicle_model_id     BigInt?
+  vehicle_make_name    String?
+  vehicle_model_name   String?
+  archived             Boolean   @default(false)
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+
+  client      Client     @relation(fields: [client_id], references: [id])
+  tasks       Task[]
+  make        VehicleMake?  @relation(fields: [vehicle_make_id], references: [vehicle_make_id])
+  model       VehicleModel? @relation(fields: [vehicle_model_id], references: [vehicle_model_id])
+
+  @@index([client_id], name: "index_vehicles_on_client_id")
+  @@index([vehicle_make_id], name: "index_vehicles_on_vehicle_make_id")
+  @@index([vehicle_model_id], name: "index_vehicles_on_vehicle_model_id")
+  @@index([vehicle_year], name: "index_vehicles_on_vehicle_year")
+  @@unique([vehicle_number], name: "index_vehicles_on_vehicle_number")
+  @@unique([vehicle_vin_code], name: "index_vehicles_on_vehicle_vin_code")
+  @@index([vehicle_distance], name: "index_vehicles_on_vehicle_distance")
+
+  @@schema("public")
+}
+
+model Task {
+  id         BigInt    @id @default(autoincrement()) @db.BigInt
+  title      String?
+  status     Int
+  vehicle_id BigInt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  vehicle           Vehicle         @relation(fields: [vehicle_id], references: [id])
+  vehicle_histories VehicleHistory[]
+  detail_histories  DetailHistory[]
+
+  @@index([vehicle_id], name: "index_tasks_on_vehicle_id")
+
+  @@schema("public")
+}
+
+model VehicleHistory {
+  id         BigInt   @id @default(autoincrement()) @db.BigInt
+  distance   Int?
+  status     String?
+  task_id    BigInt
+  service_id BigInt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  task    Task    @relation(fields: [task_id], references: [id])
+  service Service @relation(fields: [service_id], references: [id])
+
+  @@index([task_id], name: "index_vehicle_histories_on_task_id")
+  @@index([service_id], name: "index_vehicle_histories_on_service_id")
+
+  @@schema("public")
+}
+
+model Service {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  title       String?
+  description String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  vehicle_histories VehicleHistory[]
+
+  @@schema("public")
+}
+
+model VehicleMake {
+  id               BigInt   @id @default(autoincrement()) @db.BigInt
+  vehicle_make_id   BigInt
+  vehicle_make_name String
+  vehicle_type      Int
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  models   VehicleModel[]
+  vehicles Vehicle[]
+
+  @@unique([vehicle_make_id], name: "index_vehicle_makes_on_vehicle_make_id")
+  @@schema("public")
+}
+
+model VehicleModel {
+  id                BigInt   @id @default(autoincrement()) @db.BigInt
+  vehicle_model_id   BigInt
+  vehicle_model_name String
+  vehicle_type       Int
+  vehicle_make_id    BigInt
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  make     VehicleMake @relation(fields: [vehicle_make_id], references: [vehicle_make_id])
+  vehicles Vehicle[]
+
+  @@index([vehicle_make_id], name: "index_vehicle_models_on_vehicle_make_id")
+  @@unique([vehicle_model_id], name: "index_vehicle_models_on_vehicle_model_id")
+
+  @@schema("public")
+}
+
+model Storage {
+  id         BigInt    @id @default(autoincrement()) @db.BigInt
+  name       String?
+  company_id BigInt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  company          Company         @relation(fields: [company_id], references: [id])
+  categories       Category[]
+  supliers         Suplier[]
+  detail_histories DetailHistory[]
+  details          Detail[]
+
+  @@schema("public")
+}
+
+model Category {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  name        String?
+  storage_id  BigInt
+  archived    Boolean   @default(false)
+  archived_at DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  storage Storage @relation(fields: [storage_id], references: [id])
+  details Detail[]
+
+  @@index([storage_id], name: "index_categories_on_storage_id")
+  @@unique([name, storage_id], name: "index_categories_on_name_and_storage_id")
+
+  @@schema("public")
+}
+
+model Suplier {
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  name         String?
+  phone        String?
+  email        String?
+  site_url     String?
+  comment      String?
+  storage_id   BigInt
+  suplier_name String?
+  archived     Boolean   @default(false)
+  archived_at  DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  storage Storage @relation(fields: [storage_id], references: [id])
+  details Detail[]
+
+  @@index([storage_id], name: "index_supliers_on_storage_id")
+
+  @@schema("public")
+}
+
+model Detail {
+  id            BigInt    @id @default(autoincrement()) @db.BigInt
+  name          String?
+  article       String?
+  count         Int?
+  minimum_count Int?
+  suplier_id    BigInt?
+  category_id   BigInt?
+  storage_id    BigInt
+  archived      Boolean   @default(false)
+  archived_at   DateTime?
+  sell_price    Decimal?
+  buy_price     Decimal?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  suplier        Suplier?        @relation(fields: [suplier_id], references: [id])
+  category       Category?       @relation(fields: [category_id], references: [id])
+  storage        Storage         @relation(fields: [storage_id], references: [id])
+  detail_histories DetailHistory[]
+
+  @@unique([article], name: "index_details_on_article")
+  @@index([category_id], name: "index_details_on_category_id")
+  @@index([storage_id], name: "index_details_on_storage_id")
+  @@index([suplier_id], name: "index_details_on_suplier_id")
+
+  @@schema("public")
+}
+
+model DetailHistory {
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  action_type  Int?
+  count_diff   Int?
+  count_result Int?
+  comment      String?
+  user_id      String
+  detail_id    BigInt
+  task_id      BigInt?
+  storage_id   BigInt
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  detail  Detail  @relation(fields: [detail_id], references: [id])
+  task    Task?   @relation(fields: [task_id], references: [id])
+  storage Storage @relation(fields: [storage_id], references: [id])
+  user    User    @relation(fields: [user_id], references: [id])
+
+  @@index([detail_id], name: "index_detail_histories_on_detail_id")
+  @@index([storage_id], name: "index_detail_histories_on_storage_id")
+  @@index([task_id], name: "index_detail_histories_on_task_id")
+  @@index([user_id], name: "index_detail_histories_on_user_id")
+
+  @@schema("public")
+}
+
+model Invitation {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String?
+  company_id BigInt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@index([company_id], name: "index_invitations_on_company_id")
+
+  @@schema("public")
+}
+
+model Report {
+  id          BigInt   @id @default(autoincrement()) @db.BigInt
+  job_id      String?
+  data_errors Json?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([job_id], name: "index_reports_on_job_id")
+
+  @@schema("public")
+}
+
+model Upload {
+  id         BigInt   @id @default(autoincrement()) @db.BigInt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@schema("public")
+}
+
+model Workspace {
+  id         BigInt    @id @default(autoincrement()) @db.BigInt
+  title      String?
+  company_id BigInt
+  number     Int?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@schema("public")
+}
+
+model User {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id   BigInt
+  role         Int?
+  status       Int       @default(2)
+  auth_user_id String
+  email        String?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  company         Company        @relation(fields: [company_id], references: [id])
+  detail_histories DetailHistory[]
+
+  authUser AuthUser @relation(fields: [auth_user_id], references: [id])
+
+  @@unique([auth_user_id], name: "index_users_on_auth_user_id")
+  @@unique([email], name: "index_users_on_email")
+  @@index([company_id], name: "index_users_on_company_id")
+
+  @@schema("public")
+}
+
+model AuthUser {
+  id              String   @id @db.Uuid
+  raw_user_meta_data Json?
+  raw_app_meta_data Json?
+
+  user User?
+
+  @@schema("auth")
+  @@map("users")
+}
