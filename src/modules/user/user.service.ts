@@ -10,4 +10,8 @@ export class UserService {
       include: { companies: true },
     });
   }
+
+  findUserInvitations(email: string) {
+    return this.prisma.invitations.findMany({ where: { email } });
+  }
 }

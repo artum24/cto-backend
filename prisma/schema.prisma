@@ -4,348 +4,358 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["public", "auth"]
+  schemas  = ["public"]
 }
 
-model Company {
-  id           BigInt     @id @default(autoincrement()) @db.BigInt
-  title        String?
-  company_type Int?
-  city         String?
-  address      String?
-  city_ref     String?
-  address_ref  String?
-  house_number String?
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
+model active_storage_attachments {
+  id                   BigInt               @id @default(autoincrement())
+  name                 String               @db.VarChar
+  record_type          String               @db.VarChar
+  record_id            BigInt
+  blob_id              BigInt
+  created_at           DateTime             @db.Timestamp(6)
+  active_storage_blobs active_storage_blobs @relation(fields: [blob_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_c3b3935057")
 
-  users      User[]
-  clients    Client[]
-  storages   Storage[]
-  invites    Invitation[]
-  workspaces Workspace[]
+  @@unique([record_type, record_id, name, blob_id], map: "index_active_storage_attachments_uniqueness")
+  @@index([blob_id], map: "index_active_storage_attachments_on_blob_id")
+  @@schema("public")
+}
+
+model active_storage_blobs {
+  id                             BigInt                           @id @default(autoincrement())
+  key                            String                           @unique(map: "index_active_storage_blobs_on_key") @db.VarChar
+  filename                       String                           @db.VarChar
+  content_type                   String?                          @db.VarChar
+  metadata                       String?
+  service_name                   String                           @db.VarChar
+  byte_size                      BigInt
+  checksum                       String?                          @db.VarChar
+  created_at                     DateTime                         @db.Timestamp(6)
+  active_storage_attachments     active_storage_attachments[]
+  active_storage_variant_records active_storage_variant_records[]
 
   @@schema("public")
 }
 
-model Client {
-  id         BigInt    @id @default(autoincrement()) @db.BigInt
-  name       String?
-  phone      String?
-  archived   Boolean   @default(false)
-  company_id BigInt?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+model active_storage_variant_records {
+  id                   BigInt               @id @default(autoincrement())
+  blob_id              BigInt
+  variation_digest     String               @db.VarChar
+  active_storage_blobs active_storage_blobs @relation(fields: [blob_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_993965df05")
 
-  company Company? @relation(fields: [company_id], references: [id])
-  vehicles Vehicle[]
+  @@unique([blob_id, variation_digest], map: "index_active_storage_variant_records_uniqueness")
+  @@schema("public")
+}
 
-  @@index([company_id, phone], name: "index_clients_on_company_id_and_phone")
-  @@index([company_id], name: "index_clients_on_company_id")
+model ar_internal_metadata {
+  key        String   @id @db.VarChar
+  value      String?  @db.VarChar
+  created_at DateTime @db.Timestamp(6)
+  updated_at DateTime @db.Timestamp(6)
 
   @@schema("public")
 }
 
-model Vehicle {
-  id                   BigInt    @id @default(autoincrement()) @db.BigInt
-  vehicle_year         Int
-  vehicle_distance     Int?
-  vehicle_number       String?
-  vehicle_vin_code     String?
-  vehicle_transmission String?
-  client_id            BigInt
-  vehicle_type         Int?
-  vehicle_make_id      BigInt?
-  vehicle_model_id     BigInt?
-  vehicle_make_name    String?
-  vehicle_model_name   String?
-  archived             Boolean   @default(false)
-  created_at           DateTime  @default(now())
-  updated_at           DateTime  @updatedAt
-
-  client      Client     @relation(fields: [client_id], references: [id])
-  tasks       Task[]
-  make        VehicleMake?  @relation(fields: [vehicle_make_id], references: [vehicle_make_id])
-  model       VehicleModel? @relation(fields: [vehicle_model_id], references: [vehicle_model_id])
-
-  @@index([client_id], name: "index_vehicles_on_client_id")
-  @@index([vehicle_make_id], name: "index_vehicles_on_vehicle_make_id")
-  @@index([vehicle_model_id], name: "index_vehicles_on_vehicle_model_id")
-  @@index([vehicle_year], name: "index_vehicles_on_vehicle_year")
-  @@unique([vehicle_number], name: "index_vehicles_on_vehicle_number")
-  @@unique([vehicle_vin_code], name: "index_vehicles_on_vehicle_vin_code")
-  @@index([vehicle_distance], name: "index_vehicles_on_vehicle_distance")
-
-  @@schema("public")
-}
-
-model Task {
-  id         BigInt    @id @default(autoincrement()) @db.BigInt
-  title      String?
-  status     Int
-  vehicle_id BigInt
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-
-  vehicle           Vehicle         @relation(fields: [vehicle_id], references: [id])
-  vehicle_histories VehicleHistory[]
-  detail_histories  DetailHistory[]
-
-  @@index([vehicle_id], name: "index_tasks_on_vehicle_id")
-
-  @@schema("public")
-}
-
-model VehicleHistory {
-  id         BigInt   @id @default(autoincrement()) @db.BigInt
-  distance   Int?
-  status     String?
-  task_id    BigInt
-  service_id BigInt
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  task    Task    @relation(fields: [task_id], references: [id])
-  service Service @relation(fields: [service_id], references: [id])
-
-  @@index([task_id], name: "index_vehicle_histories_on_task_id")
-  @@index([service_id], name: "index_vehicle_histories_on_service_id")
-
-  @@schema("public")
-}
-
-model Service {
-  id          BigInt    @id @default(autoincrement()) @db.BigInt
-  title       String?
-  description String?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-
-  vehicle_histories VehicleHistory[]
-
-  @@schema("public")
-}
-
-model VehicleMake {
-  id               BigInt   @id @default(autoincrement()) @db.BigInt
-  vehicle_make_id   BigInt
-  vehicle_make_name String
-  vehicle_type      Int
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  models   VehicleModel[]
-  vehicles Vehicle[]
-
-  @@unique([vehicle_make_id], name: "index_vehicle_makes_on_vehicle_make_id")
-  @@schema("public")
-}
-
-model VehicleModel {
-  id                BigInt   @id @default(autoincrement()) @db.BigInt
-  vehicle_model_id   BigInt
-  vehicle_model_name String
-  vehicle_type       Int
-  vehicle_make_id    BigInt
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
-
-  make     VehicleMake @relation(fields: [vehicle_make_id], references: [vehicle_make_id])
-  vehicles Vehicle[]
-
-  @@index([vehicle_make_id], name: "index_vehicle_models_on_vehicle_make_id")
-  @@unique([vehicle_model_id], name: "index_vehicle_models_on_vehicle_model_id")
-
-  @@schema("public")
-}
-
-model Storage {
-  id         BigInt    @id @default(autoincrement()) @db.BigInt
-  name       String?
-  company_id BigInt
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-
-  company          Company         @relation(fields: [company_id], references: [id])
-  categories       Category[]
-  supliers         Suplier[]
-  detail_histories DetailHistory[]
-  details          Detail[]
-
-  @@schema("public")
-}
-
-model Category {
-  id          BigInt    @id @default(autoincrement()) @db.BigInt
-  name        String?
+model categories {
+  id          BigInt    @id @default(autoincrement())
+  name        String?   @db.VarChar
   storage_id  BigInt
+  created_at  DateTime  @db.Timestamp(6)
+  updated_at  DateTime  @db.Timestamp(6)
   archived    Boolean   @default(false)
-  archived_at DateTime?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  archived_at DateTime? @db.Timestamp(6)
+  storages    storages  @relation(fields: [storage_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_8c8584bd5f")
+  details     details[]
 
-  storage Storage @relation(fields: [storage_id], references: [id])
-  details Detail[]
+  @@unique([name, storage_id], map: "index_categories_on_name_and_storage_id")
+  @@index([storage_id], map: "index_categories_on_storage_id")
+  @@schema("public")
+}
 
-  @@index([storage_id], name: "index_categories_on_storage_id")
-  @@unique([name, storage_id], name: "index_categories_on_name_and_storage_id")
+model clients {
+  id         BigInt     @id @default(autoincrement())
+  name       String?    @db.VarChar
+  phone      String?    @db.VarChar
+  created_at DateTime   @db.Timestamp(6)
+  updated_at DateTime   @db.Timestamp(6)
+  archived   Boolean    @default(false)
+  company_id BigInt?
+  companies  companies? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_db0f958971")
+  vehicles   vehicles[]
+
+  @@unique([company_id, phone], map: "index_clients_on_company_id_and_phone")
+  @@index([company_id], map: "index_clients_on_company_id")
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "index_clients_on_name", type: Gin)
+  @@schema("public")
+}
+
+model companies {
+  id           BigInt        @id @default(autoincrement())
+  title        String?       @db.VarChar
+  company_type Int?
+  city         String?       @db.VarChar
+  address      String?       @db.VarChar
+  created_at   DateTime      @db.Timestamp(6)
+  updated_at   DateTime      @db.Timestamp(6)
+  city_ref     String?       @db.VarChar
+  address_ref  String?       @db.VarChar
+  house_number String?       @db.VarChar
+  clients      clients[]
+  invitations  invitations[]
+  storages     storages[]
+  users        users[]
+  workspaces   workspaces[]
 
   @@schema("public")
 }
 
-model Suplier {
-  id           BigInt    @id @default(autoincrement()) @db.BigInt
-  name         String?
-  phone        String?
-  email        String?
-  site_url     String?
-  comment      String?
-  storage_id   BigInt
-  suplier_name String?
-  archived     Boolean   @default(false)
-  archived_at  DateTime?
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-
-  storage Storage @relation(fields: [storage_id], references: [id])
-  details Detail[]
-
-  @@index([storage_id], name: "index_supliers_on_storage_id")
-
-  @@schema("public")
-}
-
-model Detail {
-  id            BigInt    @id @default(autoincrement()) @db.BigInt
-  name          String?
-  article       String?
-  count         Int?
-  minimum_count Int?
-  suplier_id    BigInt?
-  category_id   BigInt?
-  storage_id    BigInt
-  archived      Boolean   @default(false)
-  archived_at   DateTime?
-  sell_price    Decimal?
-  buy_price     Decimal?
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-
-  suplier        Suplier?        @relation(fields: [suplier_id], references: [id])
-  category       Category?       @relation(fields: [category_id], references: [id])
-  storage        Storage         @relation(fields: [storage_id], references: [id])
-  detail_histories DetailHistory[]
-
-  @@unique([article], name: "index_details_on_article")
-  @@index([category_id], name: "index_details_on_category_id")
-  @@index([storage_id], name: "index_details_on_storage_id")
-  @@index([suplier_id], name: "index_details_on_suplier_id")
-
-  @@schema("public")
-}
-
-model DetailHistory {
-  id           BigInt    @id @default(autoincrement()) @db.BigInt
+model detail_histories {
+  id           BigInt   @id @default(autoincrement())
   action_type  Int?
   count_diff   Int?
   count_result Int?
-  comment      String?
-  user_id      String
+  comment      String?  @db.VarChar
+  user_id      String   @db.Uuid
   detail_id    BigInt
   task_id      BigInt?
   storage_id   BigInt
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
+  created_at   DateTime @db.Timestamp(6)
+  updated_at   DateTime @db.Timestamp(6)
+  tasks        tasks?   @relation(fields: [task_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_1b86a3ac9e")
+  details      details  @relation(fields: [detail_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_2426616090")
+  users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_6c4dcab13f")
+  storages     storages @relation(fields: [storage_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_867a758e61")
 
-  detail  Detail  @relation(fields: [detail_id], references: [id])
-  task    Task?   @relation(fields: [task_id], references: [id])
-  storage Storage @relation(fields: [storage_id], references: [id])
-  user    User    @relation(fields: [user_id], references: [id])
-
-  @@index([detail_id], name: "index_detail_histories_on_detail_id")
-  @@index([storage_id], name: "index_detail_histories_on_storage_id")
-  @@index([task_id], name: "index_detail_histories_on_task_id")
-  @@index([user_id], name: "index_detail_histories_on_user_id")
-
+  @@index([detail_id], map: "index_detail_histories_on_detail_id")
+  @@index([storage_id], map: "index_detail_histories_on_storage_id")
+  @@index([task_id], map: "index_detail_histories_on_task_id")
+  @@index([user_id], map: "index_detail_histories_on_user_id")
   @@schema("public")
 }
 
-model Invitation {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email      String?
+model details {
+  id               BigInt             @id @default(autoincrement())
+  name             String?            @db.VarChar
+  article          String?            @unique(map: "index_details_on_article") @db.VarChar
+  count            Int?
+  minimum_count    Int?
+  suplier_id       BigInt?
+  category_id      BigInt?
+  storage_id       BigInt
+  created_at       DateTime           @db.Timestamp(6)
+  updated_at       DateTime           @db.Timestamp(6)
+  archived         Boolean            @default(false)
+  archived_at      DateTime?          @db.Timestamp(6)
+  sell_price       Decimal?           @db.Decimal
+  buy_price        Decimal?           @db.Decimal
+  detail_histories detail_histories[]
+  storages         storages           @relation(fields: [storage_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_1d3acaa439")
+  supliers         supliers?          @relation(fields: [suplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_3e6fda7e39")
+  categories       categories?        @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_7eb8d15839")
+
+  @@index([category_id], map: "index_details_on_category_id")
+  @@index([count], map: "index_details_on_count")
+  @@index([storage_id], map: "index_details_on_storage_id")
+  @@index([suplier_id], map: "index_details_on_suplier_id")
+  @@schema("public")
+}
+
+model invitations {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at DateTime  @db.Timestamp(6)
+  updated_at DateTime  @db.Timestamp(6)
+  email      String?   @db.VarChar
   company_id BigInt
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  companies  companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_f16e5a18d7")
 
-  company Company @relation(fields: [company_id], references: [id])
-
-  @@index([company_id], name: "index_invitations_on_company_id")
-
+  @@index([company_id], map: "index_invitations_on_company_id")
   @@schema("public")
 }
 
-model Report {
-  id          BigInt   @id @default(autoincrement()) @db.BigInt
-  job_id      String?
+model reports {
+  id          BigInt   @id @default(autoincrement())
+  job_id      String?  @unique(map: "index_reports_on_job_id") @db.VarChar
   data_errors Json?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  @@unique([job_id], name: "index_reports_on_job_id")
+  created_at  DateTime @db.Timestamp(6)
+  updated_at  DateTime @db.Timestamp(6)
 
   @@schema("public")
 }
 
-model Upload {
-  id         BigInt   @id @default(autoincrement()) @db.BigInt
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model schema_migrations {
+  version String @id @db.VarChar
 
   @@schema("public")
 }
 
-model Workspace {
-  id         BigInt    @id @default(autoincrement()) @db.BigInt
-  title      String?
+model services {
+  id                BigInt              @id @default(autoincrement())
+  title             String?             @db.VarChar
+  description       String?             @db.VarChar
+  created_at        DateTime            @db.Timestamp(6)
+  updated_at        DateTime            @db.Timestamp(6)
+  vehicle_histories vehicle_histories[]
+
+  @@schema("public")
+}
+
+model storages {
+  id               BigInt             @id @default(autoincrement())
+  name             String?            @db.VarChar
+  company_id       BigInt
+  created_at       DateTime           @db.Timestamp(6)
+  updated_at       DateTime           @db.Timestamp(6)
+  categories       categories[]
+  detail_histories detail_histories[]
+  details          details[]
+  companies        companies          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_2d2240b84c")
+  supliers         supliers[]
+
+  @@index([company_id], map: "index_storages_on_company_id")
+  @@schema("public")
+}
+
+model supliers {
+  id           BigInt    @id @default(autoincrement())
+  name         String?   @db.VarChar
+  phone        String?   @db.VarChar
+  email        String?   @db.VarChar
+  site_url     String?   @db.VarChar
+  comment      String?   @db.VarChar
+  storage_id   BigInt
+  created_at   DateTime  @db.Timestamp(6)
+  updated_at   DateTime  @db.Timestamp(6)
+  suplier_name String?   @db.VarChar
+  archived     Boolean   @default(false)
+  archived_at  DateTime? @db.Timestamp(6)
+  details      details[]
+  storages     storages  @relation(fields: [storage_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_a0f33fc780")
+
+  @@index([storage_id], map: "index_supliers_on_storage_id")
+  @@schema("public")
+}
+
+model tasks {
+  id                BigInt              @id @default(autoincrement())
+  title             String?             @db.VarChar
+  status            Int
+  vehicle_id        BigInt
+  created_at        DateTime            @db.Timestamp(6)
+  updated_at        DateTime            @db.Timestamp(6)
+  detail_histories  detail_histories[]
+  vehicles          vehicles            @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_e6342a7e7d")
+  vehicle_histories vehicle_histories[]
+
+  @@index([vehicle_id], map: "index_tasks_on_vehicle_id")
+  @@schema("public")
+}
+
+model uploads {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @db.Timestamp(6)
+  updated_at DateTime @db.Timestamp(6)
+
+  @@schema("public")
+}
+
+model users {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id       BigInt
+  role             Int?
+  created_at       DateTime           @db.Timestamp(6)
+  updated_at       DateTime           @db.Timestamp(6)
+  auth_user_id     String             @unique(map: "index_users_on_auth_user_id") @db.Uuid
+  status           Int                @default(2)
+  email            String?            @unique(map: "index_users_on_email") @db.VarChar
+  detail_histories detail_histories[]
+  companies        companies          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_7682a3bdfe")
+
+  @@index([company_id], map: "index_users_on_company_id")
+  @@schema("public")
+}
+
+model vehicle_histories {
+  id         BigInt   @id @default(autoincrement())
+  distance   Int?
+  status     String?  @db.VarChar
+  task_id    BigInt
+  created_at DateTime @db.Timestamp(6)
+  updated_at DateTime @db.Timestamp(6)
+  service_id BigInt
+  services   services @relation(fields: [service_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_077266b3b2")
+  tasks      tasks    @relation(fields: [task_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_bac9cf93bb")
+
+  @@index([service_id], map: "index_vehicle_histories_on_service_id")
+  @@index([task_id], map: "index_vehicle_histories_on_task_id")
+  @@schema("public")
+}
+
+model vehicle_makes {
+  id                BigInt           @id @default(autoincrement())
+  vehicle_make_id   BigInt           @unique(map: "index_vehicle_makes_on_vehicle_make_id")
+  vehicle_make_name String           @db.VarChar
+  vehicle_type      Int
+  created_at        DateTime         @db.Timestamp(6)
+  updated_at        DateTime         @db.Timestamp(6)
+  vehicle_models    vehicle_models[]
+  vehicles          vehicles[]
+
+  @@schema("public")
+}
+
+model vehicle_models {
+  id                 BigInt        @id @default(autoincrement())
+  vehicle_model_id   BigInt        @unique(map: "index_vehicle_models_on_vehicle_model_id")
+  vehicle_model_name String        @db.VarChar
+  vehicle_type       Int
+  vehicle_make_id    BigInt
+  created_at         DateTime      @db.Timestamp(6)
+  updated_at         DateTime      @db.Timestamp(6)
+  vehicle_makes      vehicle_makes @relation(fields: [vehicle_make_id], references: [vehicle_make_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_d0bef20deb")
+  vehicles           vehicles[]
+
+  @@index([vehicle_make_id], map: "index_vehicle_models_on_vehicle_make_id")
+  @@schema("public")
+}
+
+model vehicles {
+  id                   BigInt          @id @default(autoincrement())
+  vehicle_year         Int
+  vehicle_distance     Int?
+  vehicle_number       String?         @unique(map: "index_vehicles_on_vehicle_number") @db.VarChar
+  vehicle_vin_code     String?         @db.VarChar
+  vehicle_transmission String?         @db.VarChar
+  client_id            BigInt
+  created_at           DateTime        @db.Timestamp(6)
+  updated_at           DateTime        @db.Timestamp(6)
+  vehicle_type         Int?
+  vehicle_make_id      BigInt?
+  vehicle_model_id     BigInt?
+  vehicle_make_name    String?         @db.VarChar
+  vehicle_model_name   String?         @db.VarChar
+  archived             Boolean         @default(false)
+  tasks                tasks[]
+  clients              clients         @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_71757241f0")
+  vehicle_models       vehicle_models? @relation(fields: [vehicle_model_id], references: [vehicle_model_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_83f60c4d50")
+  vehicle_makes        vehicle_makes?  @relation(fields: [vehicle_make_id], references: [vehicle_make_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_ebbfd13f29")
+
+  @@index([client_id], map: "index_vehicles_on_client_id")
+  @@index([vehicle_distance], map: "index_vehicles_on_vehicle_distance")
+  @@index([vehicle_make_id], map: "index_vehicles_on_vehicle_make_id")
+  @@index([vehicle_model_id], map: "index_vehicles_on_vehicle_model_id")
+  @@index([vehicle_year], map: "index_vehicles_on_vehicle_year")
+  @@schema("public")
+}
+
+model workspaces {
+  id         BigInt    @id @default(autoincrement())
+  title      String?   @db.VarChar
   company_id BigInt
   number     Int?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  created_at DateTime  @db.Timestamp(6)
+  updated_at DateTime  @db.Timestamp(6)
+  companies  companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_722962e7d3")
 
-  company Company @relation(fields: [company_id], references: [id])
-
+  @@index([company_id], map: "index_workspaces_on_company_id")
   @@schema("public")
-}
-
-model User {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  company_id   BigInt
-  role         Int?
-  status       Int       @default(2)
-  auth_user_id String
-  email        String?
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-
-  company         Company        @relation(fields: [company_id], references: [id])
-  detail_histories DetailHistory[]
-
-  authUser AuthUser @relation(fields: [auth_user_id], references: [id])
-
-  @@unique([auth_user_id], name: "index_users_on_auth_user_id")
-  @@unique([email], name: "index_users_on_email")
-  @@index([company_id], name: "index_users_on_company_id")
-
-  @@schema("public")
-}
-
-model AuthUser {
-  id              String   @id @db.Uuid
-  raw_user_meta_data Json?
-  raw_app_meta_data Json?
-
-  user User?
-
-  @@schema("auth")
-  @@map("users")
 }

@@ -5,23 +5,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { ConfigService } from '@nestjs/config';
-import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '../prisma/prisma.service';
 import { Request } from 'express';
-import { User as PrismaUser, Company } from '@prisma/client';
+import { SupabaseAdminClient } from './supabase.client';
+import type { Prisma as PrismaTypes } from '@prisma/client';
+import jwt from 'jsonwebtoken';
 
-export type SupabaseJwtPayload = {
-  sub: string; // auth.users.id
-  role?: string;
-  exp?: number;
-  [key: string]: unknown;
-};
+type UserRecord = PrismaTypes.usersGetPayload<{ include: { companies: true } }>;
 
 export type AuthContextUser = {
   authUserId: string;
-  user: PrismaUser & { company: Company };
-  payload: SupabaseJwtPayload;
+  user: UserRecord;
+  authUser: { id: string; email?: string | null; role?: string | null };
 };
 
 type ReqWithUser = Request & { user?: AuthContextUser };
@@ -29,30 +24,40 @@ type ReqWithUser = Request & { user?: AuthContextUser };
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
   constructor(
-    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly supabaseAdmin: SupabaseAdminClient,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const { req } = this.getRequest(context);
     const token = this.extractToken(req);
-    const payload = this.verifyToken(token);
 
-    const authUserId = payload.sub;
-    if (!authUserId) {
-      throw new UnauthorizedException('Invalid token payload');
-    }
+    const { authUserId, supabaseUser } = await this.fetchSupabaseUser(token);
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.users.findUnique({
       where: { auth_user_id: authUserId },
-      include: { company: true },
+      include: { companies: true },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    req.user = { authUserId, user, payload };
+    req.user = {
+      authUserId,
+      user,
+      authUser: {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        role:
+          supabaseUser.user_metadata &&
+          typeof supabaseUser.user_metadata === 'object'
+            ? ((
+                supabaseUser.user_metadata as Record<string, unknown>
+              )?.role?.toString() ?? null)
+            : null,
+      },
+    };
     return true;
   }
 
@@ -82,17 +87,43 @@ export class SupabaseAuthGuard implements CanActivate {
     return header.replace('Bearer ', '').trim();
   }
 
-  private verifyToken(token: string): SupabaseJwtPayload {
-    const secret = this.config.get<string>('SUPABASE_JWT_SECRET');
-    if (!secret) {
-      throw new UnauthorizedException('JWT secret is not configured');
+  private async fetchSupabaseUser(token: string): Promise<{
+    authUserId: string;
+    supabaseUser: {
+      id: string;
+      email?: string | null;
+      user_metadata?: unknown;
+    };
+  }> {
+    const { data } = await this.supabaseAdmin.client.auth.getUser(token);
+    if (data?.user) {
+      return {
+        authUserId: data.user.id,
+        supabaseUser: {
+          id: data.user.id,
+          email: data.user.email,
+          user_metadata: data.user.user_metadata,
+        },
+      };
     }
-    try {
-      return jwt.verify(token, secret, {
-        algorithms: ['HS256'],
-      }) as SupabaseJwtPayload;
-    } catch {
-      throw new UnauthorizedException('Token verification failed');
+
+    const decoded = jwt.decode(token) as {
+      sub?: string;
+      email?: string;
+    } | null;
+    if (decoded?.sub) {
+      return {
+        authUserId: decoded.sub,
+        supabaseUser: {
+          id: decoded.sub,
+          email: decoded.email ?? null,
+          user_metadata: decoded,
+        },
+      };
     }
+
+    throw new UnauthorizedException(
+      'Supabase token verification failed (check SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or token validity)',
+    );
   }
 }

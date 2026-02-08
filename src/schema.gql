@@ -2,6 +2,17 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Client {
+  archived: Boolean!
+  company_id: ID!
+  created_at: String!
+  id: ID!
+  name: String
+  phone: String
+  updated_at: String!
+  vehicles: [Vehicle]
+}
+
 type Company {
   address: String
   address_ref: String
@@ -13,9 +24,32 @@ type Company {
   title: String
 }
 
+union CompanyMember = Invitation | User
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Invitation {
+  company_id: ID!
+  created_at: DateTime!
+  email: String
+  id: ID!
+  updated_at: DateTime!
+}
+
 type Query {
+  client(id: Int!): Client!
+  clients: [Client!]!
+  companyMembers: [CompanyMember!]!
+  currentUserCompany: Company!
   me: User!
-  myCompany: Company!
+  userInvitations: [Invitation!]!
+  vehicleMakes: [VehicleMake!]!
+  vehicleMakesByType(typeId: Int!): [VehicleMake!]!
+  vehicleModels: [VehicleModel!]!
+  vehicleModelsByMake(makeId: Int!): [VehicleModel!]!
 }
 
 type User {
@@ -24,4 +58,38 @@ type User {
   id: ID!
   role: Float
   status: Float!
+}
+
+type Vehicle {
+  id: ID!
+  updatedAt: DateTime!
+  vehicleDistance: Int
+  vehicleMakeId: ID
+  vehicleMakeName: String
+  vehicleModelId: ID
+  vehicleModelName: String
+  vehicleNumber: String
+  vehicleTransmission: String
+  vehicleType: Int
+  vehicleVinCode: String
+  vehicleYear: Int
+}
+
+type VehicleMake {
+  createdAt: DateTime!
+  id: ID!
+  updatedAt: DateTime!
+  vehicleMakeId: Int!
+  vehicleMakeName: String!
+  vehicleType: Int!
+}
+
+type VehicleModel {
+  createdAt: DateTime!
+  id: ID!
+  updatedAt: DateTime!
+  vehicleMakeId: ID!
+  vehicleModelId: Int!
+  vehicleModelName: String!
+  vehicleType: Float!
 }
