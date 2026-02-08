@@ -13,6 +13,10 @@ type Client {
   vehicles: [Vehicle]
 }
 
+input ClientOrderInput {
+  name: OrderByValues
+}
+
 type Company {
   address: String
   address_ref: String
@@ -24,7 +28,35 @@ type Company {
   title: String
 }
 
+type CompanyCreateOutput {
+  company: Company
+  errors: [String]
+  user: User
+}
+
+input CompanyInput {
+  address: String!
+  address_ref: String!
+  city: String!
+  city_ref: String!
+  company_type: CompanyType!
+  house_number: String!
+  title: String!
+}
+
 union CompanyMember = Invitation | User
+
+"""Possible company types"""
+enum CompanyType {
+  """car wash"""
+  CAR_WASH
+
+  """service station"""
+  CTO
+
+  """tire service"""
+  TIRE_SERVICE
+}
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
@@ -39,17 +71,52 @@ type Invitation {
   updated_at: DateTime!
 }
 
+type Mutation {
+  createCompany(companyInput: CompanyInput!): CompanyCreateOutput!
+}
+
+type NovaPoshtaAddress {
+  name: String!
+  ref: String!
+}
+
+type NovaPoshtaCity {
+  name: String!
+  ref: String!
+}
+
+input OrderByInput {
+  client: ClientOrderInput
+  vehicle: VehicleOrderInput
+}
+
+"""Possible values for ordering"""
+enum OrderByValues {
+  ASC
+  DESC
+}
+
+"""Possible responses to phone validation"""
+enum PhoneValidationValues {
+  INVALID
+  VALID
+}
+
 type Query {
   client(id: Int!): Client!
   clients: [Client!]!
   companyMembers: [CompanyMember!]!
   currentUserCompany: Company!
+  getNpAddress(cityRef: String!, streetName: String!): [NovaPoshtaAddress!]!
+  getNpCity(searchTerm: String!): [NovaPoshtaCity!]!
   me: User!
   userInvitations: [Invitation!]!
+  validatePhone(phone: String!): PhoneValidationValues!
   vehicleMakes: [VehicleMake!]!
   vehicleMakesByType(typeId: Int!): [VehicleMake!]!
   vehicleModels: [VehicleModel!]!
   vehicleModelsByMake(makeId: Int!): [VehicleModel!]!
+  vehicles(input: VehiclesInput!): [Vehicle!]!
 }
 
 type User {
@@ -61,6 +128,7 @@ type User {
 }
 
 type Vehicle {
+  client: Client!
   id: ID!
   updatedAt: DateTime!
   vehicleDistance: Int
@@ -92,4 +160,16 @@ type VehicleModel {
   vehicleModelId: Int!
   vehicleModelName: String!
   vehicleType: Float!
+}
+
+input VehicleOrderInput {
+  vehicle_distance: OrderByValues
+  vehicle_year: OrderByValues
+}
+
+input VehiclesInput {
+  limit: Int = 25
+  orderBy: OrderByInput
+  page: Int = 1
+  search: String
 }

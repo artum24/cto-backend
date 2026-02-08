@@ -1,11 +1,12 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Client } from '../../client/models/client.model';
 
 @ObjectType()
 export class Vehicle {
   @Field(() => ID)
   id!: string;
 
-  @Field(() => Int, {nullable: true, name: 'vehicleYear'})
+  @Field(() => Int, { nullable: true, name: 'vehicleYear' })
   vehicle_year: number;
 
   @Field(() => Int, { nullable: true, name: 'vehicleDistance' })
@@ -17,7 +18,7 @@ export class Vehicle {
   @Field(() => String, { nullable: true, name: 'vehicleVinCode' })
   vehicle_vin_code!: string | null;
 
-  @Field(() => Date, {name: 'updatedAt'})
+  @Field(() => Date, { name: 'updatedAt' })
   updated_at!: Date;
 
   @Field(() => ID, { nullable: true, name: 'vehicleMakeId' })
@@ -37,4 +38,8 @@ export class Vehicle {
 
   @Field(() => Int, { nullable: true, name: 'vehicleType' })
   vehicle_type!: number | null;
+
+  @Field(() => Client)
+  client!: Client;
 }
+

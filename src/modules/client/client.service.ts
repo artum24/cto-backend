@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { bigintToString } from '../../common/mappers/bigint.mapper';
+import { PhoneValidationValues } from '../../common/enums/phone-validation-values.enum';
 
 @Injectable()
 export class ClientService {
@@ -21,5 +22,22 @@ export class ClientService {
       throw new Error('Client not found');
     }
     return bigintToString(client);
+  }
+
+  async validatePhone(
+    company_id: bigint,
+    phone: string,
+  ): Promise<PhoneValidationValues> {
+    const normalizedPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+    const count = await this.prisma.clients.count({
+      where: {
+        company_id,
+        phone: normalizedPhone,
+      },
+    });
+
+    return count > 0
+      ? PhoneValidationValues.INVALID
+      : PhoneValidationValues.VALID;
   }
 }

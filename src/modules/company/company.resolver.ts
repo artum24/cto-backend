@@ -1,4 +1,4 @@
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { Company } from './models/company.model';
 import { CompanyService } from './company.service';
@@ -6,6 +6,8 @@ import type { AuthContextUser } from '../../auth/supabase-auth.guard';
 import { SupabaseAuthGuard } from '../../auth/supabase-auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { CompanyMemberUnion } from './company-member.union';
+import { CompanyInput } from './inputs/company.input';
+import { CompanyCreateOutput } from './models/company-create.output';
 
 @Resolver(() => Company)
 export class CompanyResolver {
@@ -25,5 +27,14 @@ export class CompanyResolver {
     return this.companyService.findCompanyMembers(
       BigInt(current.user.company_id),
     );
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => CompanyCreateOutput)
+  async createCompany(
+    @Args('companyInput') companyInput: CompanyInput,
+    @CurrentUser() currentUser: AuthContextUser,
+  ) {
+    return this.companyService.create(companyInput, currentUser);
   }
 }
