@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { bigintToString } from '../../common/mappers/bigint.mapper';
-import { VehiclesInput } from './inputs/vehicles.input';
+import { PrismaService } from '@/prisma/prisma.service';
+import { bigintToString } from '@/common/mappers/bigint.mapper';
+import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
 import { Prisma } from '@prisma/client';
 
 @Injectable()

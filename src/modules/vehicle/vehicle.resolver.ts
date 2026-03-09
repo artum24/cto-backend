@@ -1,15 +1,15 @@
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { Vehicle } from './models/vehicle.model';
-import { VehicleService } from './vehicle.service';
+import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
+import { VehicleService } from '@/modules/vehicle/vehicle.service';
 import { UseGuards } from '@nestjs/common';
 import {
   type AuthContextUser,
   SupabaseAuthGuard,
-} from '../../auth/supabase-auth.guard';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { VehicleMake } from './models/vehicleMakes.model';
-import { VehicleModel } from './models/vehicleModel.model';
-import { VehiclesInput } from './inputs/vehicles.input';
+} from '@/auth/supabase-auth.guard';
+import { CurrentUser } from '@/auth/current-user.decorator';
+import { VehicleMake } from '@/modules/vehicle/models/vehicleMakes.model';
+import { VehicleModel } from '@/modules/vehicle/models/vehicleModel.model';
+import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
 
 @Resolver(() => Vehicle)
 export class VehicleResolver {

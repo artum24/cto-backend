@@ -7,16 +7,16 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { Client } from './models/client.model';
-import { Vehicle } from '../vehicle/models/vehicle.model';
-import { VehicleService } from '../vehicle/vehicle.service';
+import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
+import { VehicleService } from '@/modules/vehicle/vehicle.service';
 import { UseGuards } from '@nestjs/common';
 import {
   type AuthContextUser,
   SupabaseAuthGuard,
-} from '../../auth/supabase-auth.guard';
+} from '@/auth/supabase-auth.guard';
 import { ClientService } from './client.service';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { PhoneValidationValues } from '../../common/enums/phone-validation-values.enum';
+import { CurrentUser } from '@/auth/current-user.decorator';
+import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
 
 @Resolver(() => Client)
 export class ClientsResolver {

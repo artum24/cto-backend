@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { NovaPoshtaService } from './nova-poshta.service';
-import { NovaPoshtaCity } from './models/nova-poshta-city.model';
-import { NovaPoshtaAddress } from './models/nova-poshta-address.model';
+import { NovaPoshtaService } from '@/modules/nova-poshta/nova-poshta.service';
+import { NovaPoshtaCity } from '@/modules/nova-poshta/models/nova-poshta-city.model';
+import { NovaPoshtaAddress } from '@/modules/nova-poshta/models/nova-poshta-address.model';
 
 @Resolver()
 export class NovaPoshtaResolver {

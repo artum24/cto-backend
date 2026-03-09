@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { bigintToString } from '../../common/mappers/bigint.mapper';
-import { PhoneValidationValues } from '../../common/enums/phone-validation-values.enum';
+import { PrismaService } from '@/prisma/prisma.service';
+import { bigintToString } from '@/common/mappers/bigint.mapper';
+import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
 
 @Injectable()
 export class ClientService {

@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { OrderByValues } from '../../../common/enums/order-by-values.enum';
+import { OrderByValues } from '@/common/enums/order-by-values.enum';
 
 @InputType()
 class ClientOrderInput {

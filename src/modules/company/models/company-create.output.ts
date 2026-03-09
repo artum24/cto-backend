@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Company } from './company.model';
-import { User } from '../../user/models/user.model';
+import { Company } from '@/modules/company/models/company.model';
+import { User } from '@/modules/user/models/user.model';
 
 @ObjectType()
 export class CompanyCreateOutput {

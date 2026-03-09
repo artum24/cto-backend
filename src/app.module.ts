@@ -10,14 +10,16 @@ import { HttpModule } from '@nestjs/axios';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
-import { HealthModule } from './health/health.module';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './modules/user/user.module';
-import { CompanyModule } from './modules/company/company.module';
-import { ClientModule } from './modules/client/client.module';
-import { VehicleModule } from './modules/vehicle/vehicle.module';
-import { NovaPoshtaModule } from './modules/nova-poshta/nova-poshta.module';
+import { PrismaModule } from '@/prisma/prisma.module';
+import { HealthModule } from '@/health/health.module';
+import { AuthModule } from '@/auth/auth.module';
+import { UserModule } from '@/modules/user/user.module';
+import { CompanyModule } from '@/modules/company/company.module';
+import { ClientModule } from '@/modules/client/client.module';
+import { VehicleModule } from '@/modules/vehicle/vehicle.module';
+import { NovaPoshtaModule } from '@/modules/nova-poshta/nova-poshta.module';
+import { StorageModule } from '@/modules/storage/storage.module';
+import { CategoriesModule } from '@/modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { NovaPoshtaModule } from './modules/nova-poshta/nova-poshta.module';
     ClientModule,
     VehicleModule,
     NovaPoshtaModule,
+    StorageModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

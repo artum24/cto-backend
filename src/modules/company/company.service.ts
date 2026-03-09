@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { bigintToString } from '../../common/mappers/bigint.mapper';
+import { PrismaService } from '@/prisma/prisma.service';
+import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CompanyInput } from './inputs/company.input';
-import { AuthContextUser } from '../../auth/supabase-auth.guard';
+import { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CompanyType } from './enums/company-type.enum';
-import { SupabaseAdminClient } from '../../auth/supabase.client';
+import { SupabaseAdminClient } from '@/auth/supabase.client';
 
 @Injectable()
 export class CompanyService {
@@ -75,7 +75,7 @@ export class CompanyService {
           'Система вихлопу',
           'Електроніка авто',
           'Скло/дзеркала',
-          'Кліматична система',
+          'Kліматична система',
           'Паливна система',
           'ГБО/газова система',
           'Хімія/автокосметика',
@@ -139,13 +139,12 @@ export class CompanyService {
           ...bigintToString(result.user),
           company: bigintToString(result.user.companies!),
         },
-        errors: [],
       };
     } catch (e) {
       if (e instanceof Error) {
-        return { errors: [e.message] };
+        throw new Error(e.message);
       }
-      return { errors: ['An unknown error occurred'] };
+      throw new Error('An unknown error occurred during company creation');
     }
   }
 }

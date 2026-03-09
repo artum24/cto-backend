@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
-import { CompanyType } from '../enums/company-type.enum';
+import { CompanyType } from '@/modules/company/enums/company-type.enum';
 
 @InputType()
 export class CompanyInput {

@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { AuthContextUser } from './supabase-auth.guard';
+import { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { Request } from 'express';
 
 type ReqWithUser = Request & { user?: AuthContextUser };

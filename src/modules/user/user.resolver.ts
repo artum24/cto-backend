@@ -1,11 +1,11 @@
 import { Resolver, Query } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { SupabaseAuthGuard } from '../../auth/supabase-auth.guard';
-import type { AuthContextUser } from '../../auth/supabase-auth.guard';
-import { User } from './models/user.model';
-import { UserService } from './user.service';
-import { Invitation } from '../company/models/invitation.model';
+import { CurrentUser } from '@/auth/current-user.decorator';
+import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
+import type { AuthContextUser } from '@/auth/supabase-auth.guard';
+import { User } from '@/modules/user/models/user.model';
+import { UserService } from '@/modules/user/user.service';
+import { Invitation } from '@/modules/company/models/invitation.model';
 
 @Resolver(() => User)
 export class UserResolver {

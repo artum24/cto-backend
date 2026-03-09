@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { SupabaseAdminClient } from './supabase.client';
 

@@ -1,10 +1,14 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  schemas  = ["public"]
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+  extensions = [pg_trgm, uuid_ossp(map: "uuid-ossp")]
+  schemas   = ["public"]
 }
 
 model active_storage_attachments {
@@ -85,7 +89,6 @@ model clients {
 
   @@unique([company_id, phone], map: "index_clients_on_company_id_and_phone")
   @@index([company_id], map: "index_clients_on_company_id")
-  @@index([name(ops: raw("gin_trgm_ops"))], map: "index_clients_on_name", type: Gin)
   @@schema("public")
 }
 
@@ -105,9 +108,26 @@ model companies {
   storages     storages[]
   users        users[]
   workspaces   workspaces[]
+  suppliers    suppliers[]
 
   @@schema("public")
 }
+
+model suppliers {
+  id             BigInt    @id @default(autoincrement())
+  name           String
+  contact_person String?
+  phone          String?
+  email          String?
+  archived       Boolean   @default(false)
+  company_id     BigInt
+  created_at     DateTime  @db.Timestamp(6)
+  updated_at     DateTime  @db.Timestamp(6)
+  companies      companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
 
 model detail_histories {
   id           BigInt   @id @default(autoincrement())
@@ -292,7 +312,7 @@ model vehicle_histories {
 
 model vehicle_makes {
   id                BigInt           @id @default(autoincrement())
-  vehicle_make_id   BigInt           @unique(map: "index_vehicle_makes_on_vehicle_make_id")
+  vehicle_make_id   Int              @unique(map: "index_vehicle_makes_on_vehicle_make_id")
   vehicle_make_name String           @db.VarChar
   vehicle_type      Int
   created_at        DateTime         @db.Timestamp(6)
@@ -305,10 +325,10 @@ model vehicle_makes {
 
 model vehicle_models {
   id                 BigInt        @id @default(autoincrement())
-  vehicle_model_id   BigInt        @unique(map: "index_vehicle_models_on_vehicle_model_id")
+  vehicle_model_id   Int           @unique(map: "index_vehicle_models_on_vehicle_model_id")
   vehicle_model_name String        @db.VarChar
   vehicle_type       Int
-  vehicle_make_id    BigInt
+  vehicle_make_id    Int
   created_at         DateTime      @db.Timestamp(6)
   updated_at         DateTime      @db.Timestamp(6)
   vehicle_makes      vehicle_makes @relation(fields: [vehicle_make_id], references: [vehicle_make_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_d0bef20deb")
@@ -329,8 +349,8 @@ model vehicles {
   created_at           DateTime        @db.Timestamp(6)
   updated_at           DateTime        @db.Timestamp(6)
   vehicle_type         Int?
-  vehicle_make_id      BigInt?
-  vehicle_model_id     BigInt?
+  vehicle_make_id      Int?
+  vehicle_model_id     Int?
   vehicle_make_name    String?         @db.VarChar
   vehicle_model_name   String?         @db.VarChar
   archived             Boolean         @default(false)

@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { SupabaseAdminClient } from './supabase.client';
 import type { Prisma as PrismaTypes } from '@prisma/client';

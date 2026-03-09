@@ -1,13 +1,12 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { Company } from './models/company.model';
-import { CompanyService } from './company.service';
-import type { AuthContextUser } from '../../auth/supabase-auth.guard';
-import { SupabaseAuthGuard } from '../../auth/supabase-auth.guard';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { CompanyMemberUnion } from './company-member.union';
-import { CompanyInput } from './inputs/company.input';
-import { CompanyCreateOutput } from './models/company-create.output';
+import { Company } from '@/modules/company/models/company.model';
+import { CompanyService } from '@/modules/company/company.service';
+import type { AuthContextUser } from '@/auth/supabase-auth.guard';
+import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
+import { CurrentUser } from '@/auth/current-user.decorator';
+import { CompanyMemberUnion } from '@/modules/company/company-member.union';
+import { CompanyInput } from '@/modules/company/inputs/company.input';
 
 @Resolver(() => Company)
 export class CompanyResolver {
@@ -30,7 +29,7 @@ export class CompanyResolver {
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => CompanyCreateOutput)
+  @Mutation(() => Company)
   async createCompany(
     @Args('companyInput') companyInput: CompanyInput,
     @CurrentUser() currentUser: AuthContextUser,

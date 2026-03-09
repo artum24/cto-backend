@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, map } from 'rxjs';
-import { NovaPoshtaCity } from './models/nova-poshta-city.model';
-import { NovaPoshtaAddress } from './models/nova-poshta-address.model';
+import { NovaPoshtaCity } from '@/modules/nova-poshta/models/nova-poshta-city.model';
+import { NovaPoshtaAddress } from '@/modules/nova-poshta/models/nova-poshta-address.model';
 
 @Injectable()
 export class NovaPoshtaService {

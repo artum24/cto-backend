@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { Client } from '../../client/models/client.model';
+import { Client } from '@/modules/client/models/client.model';
 
 @ObjectType()
 export class Vehicle {
