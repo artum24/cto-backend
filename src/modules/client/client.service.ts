@@ -2,14 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
+import { CreateClientInput } from './inputs/create-client.input';
+import { UpdateClientInput } from './inputs/update-client.input';
+
+const normalizePhone = (phone: string) =>
+  phone.replace(/[^0-9]/g, '').slice(-10);
 
 @Injectable()
 export class ClientService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(company_id: bigint) {
+  async findAll(company_id: bigint, includeArchived = false) {
     const clients = await this.prisma.clients.findMany({
-      where: { company_id },
+      where: {
+        company_id,
+        ...(includeArchived ? {} : { archived: false }),
+      },
     });
     return clients.map(bigintToString);
   }
@@ -28,7 +36,7 @@ export class ClientService {
     company_id: bigint,
     phone: string,
   ): Promise<PhoneValidationValues> {
-    const normalizedPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+    const normalizedPhone = normalizePhone(phone);
     const count = await this.prisma.clients.count({
       where: {
         company_id,
@@ -39,5 +47,76 @@ export class ClientService {
     return count > 0
       ? PhoneValidationValues.INVALID
       : PhoneValidationValues.VALID;
+  }
+
+  async create(companyId: bigint, input: CreateClientInput) {
+    const phone = normalizePhone(input.phone);
+    const validation = await this.validatePhone(companyId, input.phone);
+    if (validation === PhoneValidationValues.INVALID) {
+      throw new Error(
+        'A client with this phone number already exists in your company.',
+      );
+    }
+    const now = new Date();
+    const client = await this.prisma.clients.create({
+      data: {
+        company_id: companyId,
+        name: input.name ?? null,
+        phone,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+    return bigintToString(client);
+  }
+
+  async update(companyId: bigint, input: UpdateClientInput) {
+    const id = BigInt(input.id);
+    const existing = await this.prisma.clients.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) {
+      throw new Error('Client not found');
+    }
+    const data: { name?: string | null; phone?: string; updated_at: Date } = {
+      updated_at: new Date(),
+    };
+    if (input.name !== undefined) data.name = input.name ?? null;
+    if (input.phone != null && input.phone !== '') {
+      const phone = normalizePhone(String(input.phone));
+      const other = await this.prisma.clients.findFirst({
+        where: {
+          company_id: companyId,
+          phone,
+          id: { not: id },
+        },
+      });
+      if (other) {
+        throw new Error(
+          'Another client in your company already has this phone number.',
+        );
+      }
+      data.phone = phone;
+    }
+    const client = await this.prisma.clients.update({
+      where: { id },
+      data,
+    });
+    return bigintToString(client);
+  }
+
+  async archive(companyId: bigint, id: string) {
+    const idBigInt = BigInt(id);
+    const existing = await this.prisma.clients.findFirst({
+      where: { id: idBigInt, company_id: companyId },
+    });
+    if (!existing) {
+      throw new Error('Client not found');
+    }
+    const client = await this.prisma.clients.update({
+      where: { id: idBigInt },
+      data: { archived: true, updated_at: new Date() },
+    });
+    return bigintToString(client);
   }
 }

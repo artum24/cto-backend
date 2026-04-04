@@ -1,4 +1,4 @@
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
 import { VehicleService } from '@/modules/vehicle/vehicle.service';
 import { UseGuards } from '@nestjs/common';
@@ -10,6 +10,8 @@ import { CurrentUser } from '@/auth/current-user.decorator';
 import { VehicleMake } from '@/modules/vehicle/models/vehicleMakes.model';
 import { VehicleModel } from '@/modules/vehicle/models/vehicleModel.model';
 import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
+import { CreateVehicleInput } from '@/modules/vehicle/inputs/create-vehicle.input';
+import { UpdateVehicleInput } from '@/modules/vehicle/inputs/update-vehicle.input';
 
 @Resolver(() => Vehicle)
 export class VehicleResolver {
@@ -60,5 +62,41 @@ export class VehicleResolver {
   ) {
     if (!current?.user?.company_id || !typeId) return [];
     return this.vehicleService.findAllMakesByType(typeId);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Vehicle, { name: 'createVehicle' })
+  async createVehicle(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: CreateVehicleInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.vehicleService.create(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Vehicle, { name: 'updateVehicle' })
+  async updateVehicle(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: UpdateVehicleInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.vehicleService.update(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Vehicle, { name: 'archiveVehicle' })
+  async archiveVehicle(
+    @CurrentUser() current: AuthContextUser,
+    @Args('id') id: string,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.vehicleService.archive(BigInt(current.user.company_id), id);
   }
 }

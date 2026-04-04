@@ -20,6 +20,8 @@ import { VehicleModule } from '@/modules/vehicle/vehicle.module';
 import { NovaPoshtaModule } from '@/modules/nova-poshta/nova-poshta.module';
 import { StorageModule } from '@/modules/storage/storage.module';
 import { CategoriesModule } from '@/modules/categories/categories.module';
+import { SupliersModule } from '@/modules/supliers/supliers.module';
+import { DetailsModule } from '@/modules/details/details.module';
 
 @Module({
   imports: [
@@ -59,6 +61,8 @@ import { CategoriesModule } from '@/modules/categories/categories.module';
     NovaPoshtaModule,
     StorageModule,
     CategoriesModule,
+    SupliersModule,
+    DetailsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,6 +7,9 @@ import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
 import { CompanyMemberUnion } from '@/modules/company/company-member.union';
 import { CompanyInput } from '@/modules/company/inputs/company.input';
+import { UpdateCompanyInput } from '@/modules/company/inputs/update-company.input';
+import { InviteMemberInput } from '@/modules/company/inputs/invite-member.input';
+import { Invitation } from '@/modules/company/models/invitation.model';
 
 @Resolver(() => Company)
 export class CompanyResolver {
@@ -35,5 +38,32 @@ export class CompanyResolver {
     @CurrentUser() currentUser: AuthContextUser,
   ) {
     return this.companyService.create(companyInput, currentUser);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Company, { name: 'updateCompany' })
+  async updateCompany(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: UpdateCompanyInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.companyService.update(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Invitation, { name: 'inviteMember' })
+  async inviteMember(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: InviteMemberInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.companyService.inviteMember(
+      BigInt(current.user.company_id),
+      input.email,
+    );
   }
 }

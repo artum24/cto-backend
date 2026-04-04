@@ -5,6 +5,7 @@ import {
   Query,
   ResolveField,
   Resolver,
+  Mutation,
 } from '@nestjs/graphql';
 import { Client } from './models/client.model';
 import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
@@ -17,6 +18,8 @@ import {
 import { ClientService } from './client.service';
 import { CurrentUser } from '@/auth/current-user.decorator';
 import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
+import { CreateClientInput } from './inputs/create-client.input';
+import { UpdateClientInput } from './inputs/update-client.input';
 
 @Resolver(() => Client)
 export class ClientsResolver {
@@ -38,11 +41,49 @@ export class ClientsResolver {
     @CurrentUser() current?: AuthContextUser,
     @Args('id', { type: () => Int }) id?: number,
   ) {
-    if (!current?.user?.company_id) return [];
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
     return this.clientsService.findByClientId(
       BigInt(current.user.company_id),
       id as number,
     );
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Client, { name: 'createClient' })
+  async createClient(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: CreateClientInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.clientsService.create(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Client, { name: 'updateClient' })
+  async updateClient(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: UpdateClientInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.clientsService.update(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Client, { name: 'archiveClient' })
+  async archiveClient(
+    @CurrentUser() current: AuthContextUser,
+    @Args('id') id: string,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.clientsService.archive(BigInt(current.user.company_id), id);
   }
 
   @UseGuards(SupabaseAuthGuard)

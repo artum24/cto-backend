@@ -8,10 +8,10 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { SupabaseAdminClient } from './supabase.client';
-import type { Prisma as PrismaTypes } from '@prisma/client';
+import type { users, companies } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
-type UserRecord = PrismaTypes.usersGetPayload<{ include: { companies: true } }>;
+type UserRecord = users & { companies?: companies | null };
 
 export type AuthContextUser = {
   authUserId: string;

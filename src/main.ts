@@ -8,7 +8,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new GraphQLExceptionFilter());
   const port = Number(process.env.PORT ?? 3000);
-  const host = process.env.HOST ?? '_YOUR_HOST_';
+  const host = process.env.HOST ?? '0.0.0.0';
   await app.listen(port, host);
 }
 bootstrap().catch((err) => {

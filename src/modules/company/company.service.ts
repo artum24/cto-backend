@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CompanyInput } from './inputs/company.input';
-import { AuthContextUser } from '@/auth/supabase-auth.guard';
+import { UpdateCompanyInput } from './inputs/update-company.input';
+import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CompanyType } from './enums/company-type.enum';
 import { SupabaseAdminClient } from '@/auth/supabase.client';
 
@@ -23,11 +25,75 @@ export class CompanyService {
     const users = await this.prisma.users.findMany({
       where: { company_id: id },
     });
-    console.log('users', users);
     const invitations = await this.prisma.invitations.findMany({
       where: { company_id: id },
     });
     return [...users.map(bigintToString), ...invitations];
+  }
+
+  async update(companyId: bigint, input: UpdateCompanyInput) {
+    const company = await this.prisma.companies.findUnique({
+      where: { id: companyId },
+    });
+    if (!company) {
+      throw new Error('Company not found.');
+    }
+    const companyTypeMap: Record<CompanyType, number> = {
+      [CompanyType.CTO]: 1,
+      [CompanyType.TIRE_SERVICE]: 2,
+      [CompanyType.CAR_WASH]: 3,
+    };
+    const data = {
+      updated_at: new Date(),
+    };
+    if (input.title !== undefined) data.title = input.title ?? null;
+    if (input.city !== undefined) data.city = input.city ?? null;
+    if (input.city_ref !== undefined) data.city_ref = input.city_ref ?? null;
+    if (input.address !== undefined) data.address = input.address ?? null;
+    if (input.address_ref !== undefined)
+      data.address_ref = input.address_ref ?? null;
+    if (input.house_number !== undefined)
+      data.house_number = input.house_number ?? null;
+    if (input.company_type !== undefined)
+      data.company_type =
+        input.company_type != null
+          ? companyTypeMap[input.company_type]
+          : null;
+
+    const updated = await this.prisma.companies.update({
+      where: { id: companyId },
+      data,
+    });
+    return bigintToString(updated);
+  }
+
+  async inviteMember(companyId: bigint, email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await this.prisma.users.findFirst({
+      where: { email: normalizedEmail, company_id: companyId },
+    });
+    if (existingUser) {
+      throw new Error('This user is already a member of your company.');
+    }
+    const existingInvitation = await this.prisma.invitations.findFirst({
+      where: {
+        company_id: companyId,
+        email: normalizedEmail,
+      },
+    });
+    if (existingInvitation) {
+      throw new Error('This email has already been invited.');
+    }
+    const now = new Date();
+    const invitation = await this.prisma.invitations.create({
+      data: {
+        company_id: companyId,
+        email: normalizedEmail,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+    return bigintToString(invitation);
   }
 
   async create(companyInput: CompanyInput, currentUser: AuthContextUser) {
@@ -43,7 +109,7 @@ export class CompanyService {
     };
 
     try {
-      const result = await this.prisma.$transaction(async (prisma) => {
+      const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
         const company = await prisma.companies.create({
           data: { ...companyData, created_at: new Date(), updated_at: new Date() },
         });

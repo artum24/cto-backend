@@ -1,4 +1,4 @@
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '@/auth/current-user.decorator';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
@@ -23,5 +23,23 @@ export class UserResolver {
   userInvitations(@CurrentUser() current?: AuthContextUser) {
     if (!current?.user?.email) return null;
     return this.userService.findUserInvitations(current.user.email);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => User, { name: 'acceptInvitation' })
+  async acceptInvitation(
+    @CurrentUser() current: AuthContextUser,
+    @Args('invitationId') invitationId: string,
+  ) {
+    return this.userService.acceptInvitation(invitationId, current);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Boolean, { name: 'declineInvitation' })
+  async declineInvitation(
+    @CurrentUser() current: AuthContextUser,
+    @Args('invitationId') invitationId: string,
+  ): Promise<boolean> {
+    return this.userService.declineInvitation(invitationId, current);
   }
 }

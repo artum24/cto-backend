@@ -15,10 +15,10 @@
 | Модуль      | Query | Mutation | Стан |
 |------------|-------|----------|-----|
 | **Auth**   | —     | —        | Guard + Supabase client, контекст користувача |
-| **User**   | `me`, `userInvitations` | — | Тільки читання профілю та запрошень |
-| **Company**| `currentUserCompany`, `companyMembers` | `createCompany` | Створення компанії + storage + базові категорії; оновлення компанії та запрошення — немає |
-| **Client** | `clients`, `client`, `validatePhone` | — | Тільки читання + валідація телефону; **немає create/update/archive** |
-| **Vehicle**| `vehicles`, `vehicleMakes`, `vehicleModels`, `vehicleModelsByMake`, `vehicleMakesByType` | — | Тільки читання + фільтри/сортування; **немає create/update/archive** |
+| **User**   | `me`, `userInvitations` | `acceptInvitation`, `declineInvitation` | Профіль + запрошення; прийняття/відхилення за invitationId |
+| **Company**| `currentUserCompany`, `companyMembers` | `createCompany`, `updateCompany`, `inviteMember` | Повний CRUD компанії + запрошення по email |
+| **Client** | `clients`, `client`, `validatePhone` | `createClient`, `updateClient`, `archiveClient` | Повний CRUD; список без архівованих за замовчуванням |
+| **Vehicle**| `vehicles`, `vehicleMakes`, `vehicleModels`, `vehicleModelsByMake`, `vehicleMakesByType` | `createVehicle`, `updateVehicle`, `archiveVehicle` | Повний CRUD; унікальність номера авто |
 | **Storage**| `storage` (по company) | — | Один склад по компанії |
 | **Categories**| `categories` (по storage через me) | `createCategory`, `updateCategory`, `archiveCategory` | Повний CRUD по категоріях складу |
 | **Nova Poshta**| `getNpCity`, `getNpAddress` | — | Зовнішній API для адрес |
@@ -47,25 +47,25 @@ companies, users, clients, vehicles, vehicle_makes, vehicle_models, storages, ca
 
 ### Фаза A: Завершити базовий CRUD (пріоритет 1)
 
-1. **Client**
-   - [ ] `createClient` (name, phone, company_id з контексту), з перевіркою унікальності телефону (вже є `validatePhone`).
-   - [ ] `updateClient` (id, name, phone).
-   - [ ] `archiveClient` (id) — аналогічно `archiveCategory` (archived + archived_at).
-   - [ ] Inputs: `CreateClientInput`, `UpdateClientInput`; при потребі — фільтр по archived у `clients`.
+1. **Client** ✅
+   - [x] `createClient` (name, phone, company_id з контексту), з перевіркою унікальності телефону.
+   - [x] `updateClient` (id, name, phone).
+   - [x] `archiveClient` (id).
+   - [x] Inputs: `CreateClientInput`, `UpdateClientInput`; `findAll` без архівованих за замовчуванням.
 
-2. **Vehicle**
-   - [ ] `createVehicle` (client_id, рік, номер, VIN, тощо; make/model id або name — за логікою Rails).
-   - [ ] `updateVehicle` (id + поля для оновлення).
-   - [ ] `archiveVehicle` (id).
-   - [ ] Inputs + валідація (унікальність номера в межах компанії, якщо потрібно).
+2. **Vehicle** ✅
+   - [x] `createVehicle` (client_id, vehicle_year, vehicle_number, VIN, make/model id/name тощо).
+   - [x] `updateVehicle` (id + опційні поля).
+   - [x] `archiveVehicle` (id).
+   - [x] Inputs: `CreateVehicleInput`, `UpdateVehicleInput`; унікальність `vehicle_number`.
 
-3. **Company**
-   - [ ] `updateCompany` (address, city, city_ref, address_ref, house_number, title тощо) — тільки для поточної компанії користувача.
-   - [ ] За потреби: `inviteMember` (email) — створення запису в `invitations` + відправка листа (або тільки запис, як у Rails).
+3. **Company** ✅
+   - [x] `updateCompany` (title, company_type, city, city_ref, address, address_ref, house_number) — для поточної компанії.
+   - [x] `inviteMember` (email) — створення запису в `invitations`; перевірка «вже в компанії» / «вже запрошений».
 
-4. **Invitations**
-   - [ ] Прийняття запрошення: mutation `acceptInvitation(invitationId)` — створення/оновлення `users` (company_id, email), видалення або маркування invitation, оновлення Supabase Auth (admin) при потребі.
-   - [ ] Відхилення: `declineInvitation(invitationId)` — видалення або soft-delete запису.
+4. **Invitations** ✅
+   - [x] `acceptInvitation(invitationId)` — перевірка email запрошення = поточний user; upsert `users` (company_id); видалення invitation; оновлення Supabase Auth app_metadata (companyId, role: member).
+   - [x] `declineInvitation(invitationId)` — перевірка email, видалення запису invitation; повертає `Boolean`.
 
 5. **Схема GraphQL**
    - [ ] Перегенерувати/перевірити `schema.gql` після додавання Category/Storage у резолвери (зараз у schema.gql їх може не бути, якщо не експортовано в кореневому модулі).
@@ -78,14 +78,11 @@ companies, users, clients, vehicles, vehicle_makes, vehicle_models, storages, ca
    - [ ] Модуль `supliers` (або `suppliers` з маппінгом на `supliers`): Query `supliers(storageId)` або по поточному storage через me.
    - [ ] CRUD: create/update/archive постачальника (прив’язка до storage_id).
 
-7. **Details (номенклатура)**
-   - [ ] Модуль `details`: Query `details(storageId, categoryId?, search?)` з пагінацією/фільтрами.
-   - [ ] Mutations: `createDetail`, `updateDetail`, `archiveDetail` (article, name, count, minimum_count, prices, category_id, suplier_id, storage_id).
-   - [ ] Можливо окремий query `detail(id)` для форми редагування.
+7. **Details (номенклатура)** ✅
+   - [x] Query `details(input?)` з пагінацією та фільтрами; `detail(id)`; mutations create/update/archive; валідація category/suplier у межах storage; унікальність article.
 
-8. **Detail histories (рухи)**
-   - [ ] Query `detailHistories(detailId?, storageId?, taskId?)` для історії рухів.
-   - [ ] Mutation `recordDetailMovement` (detail_id, storage_id, action_type, count_diff, task_id?, user_id з контексту, comment?) — створення запису + оновлення `details.count` за логікою Rails.
+8. **Detail histories (рухи)** ✅
+   - [x] Query `detailHistories(detailId?, taskId?)`; Mutation `recordDetailMovement` — оновлення `details.count` + запис у `detail_histories` (user_id з контексту).
 
 ---
 
@@ -141,10 +138,10 @@ companies, users, clients, vehicles, vehicle_makes, vehicle_models, storages, ca
 ## 3. Короткий чеклист по пріоритетах
 
 **Негайно (щоб фронт міг повністю замінити Rails API):**
-- Client: create / update / archive.
-- Vehicle: create / update / archive.
-- Company: update.
-- Invitations: accept / decline (і при потребі invite).
+- ~~Client: create / update / archive.~~ ✅
+- ~~Vehicle: create / update / archive.~~ ✅
+- ~~Company: update (+ invite).~~ ✅
+- ~~Invitations: accept / decline.~~ ✅
 
 **Далі:**
 - Details + Detail histories + Supliers (склад і номенклатура).
