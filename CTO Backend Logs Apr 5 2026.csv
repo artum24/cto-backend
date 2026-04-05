@@ -1,0 +1,289 @@
+TimeUTC,timestampInMs,requestPath,requestMethod,requestQueryString,responseStatusCode,requestId,requestUserAgent,level,environment,branch,vercelCache,type,function,host,deploymentDomain,deploymentId,durationMs,region,maxMemoryUsed,memorySize,message,projectId,traceId,sessionId,invocationId,instanceId,concurrency
+2026-04-05 11:42:14,1775389334189,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,qmn47-1775389333008-c025a3366d55,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:13,1775389333008,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,qmn47-1775389333008-c025a3366d55,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1120,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6NHWND4RE7MMA5HF72RG,,-1
+2026-04-05 11:42:13,1775389333464,cto-backend-chi.vercel.app/favicon.ico,GET,,500,nlc88-1775389332149-bf0a0ea21d84,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",error,production,main,MISS,function,/,cto-backend-chi.vercel.app,cto-backend-chi.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:12,1775389332149,cto-backend-chi.vercel.app/favicon.ico,GET,,500,nlc88-1775389332149-bf0a0ea21d84,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",,production,main,MISS,function,/,cto-backend-chi.vercel.app,cto-backend-chi.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1107,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6MVMHC0AYVWQQC4631D1,,-1
+2026-04-05 11:42:11,1775389331960,cto-backend-chi.vercel.app/,GET,,500,kfpb7-1775389330528-aa831c1f0fe0,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",error,production,main,MISS,function,/,cto-backend-chi.vercel.app,cto-backend-chi.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:10,1775389330528,cto-backend-chi.vercel.app/,GET,,500,kfpb7-1775389330528-aa831c1f0fe0,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",,production,main,MISS,function,/,cto-backend-chi.vercel.app,cto-backend-chi.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1106,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6KCTXCP5F39CTQ1T4HXC,,-1
+2026-04-05 11:42:10,1775389330881,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,jj4gl-1775389329678-9458c50163a7,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:09,1775389329678,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,jj4gl-1775389329678-9458c50163a7,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1154,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6J9K2AEBZFT27XE6QPZV,,-1
+2026-04-05 11:42:08,1775389328561,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,5dwmp-1775389327372-f58423c61da5,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:07,1775389327372,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,5dwmp-1775389327372-f58423c61da5,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1130,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6G1RQZG1MGDB5RBCTFN1,,-1
+2026-04-05 11:42:07,1775389327337,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,gq8mv-1775389326139-bebddd96ae73,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:06,1775389326139,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,gq8mv-1775389326139-bebddd96ae73,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1144,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6EV4RVZXAVCC12JTX8BC,,-1
+2026-04-05 11:42:06,1775389326934,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,wpggw-1775389325745-d457394fb0e9,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:05,1775389325745,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,wpggw-1775389325745-d457394fb0e9,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1141,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6EEQPNM3JMFYJF6M5AQY,,-1
+2026-04-05 11:42:04,1775389324073,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,m8jfj-1775389322892-330913d0a504,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:02,1775389322892,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,m8jfj-1775389322892-330913d0a504,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1131,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6BNG131PVRHJDGRRT1SW,,-1
+2026-04-05 11:42:03,1775389323636,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,jj4gl-1775389322428-e32e7a7c122c,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:02,1775389322428,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,jj4gl-1775389322428-e32e7a7c122c,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1162,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6B71EQYHQZ3BW5YJ37FJ,,-1
+2026-04-05 11:42:01,1775389321847,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,p6j78-1775389320633-00306411ed90,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:00,1775389320633,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,p6j78-1775389320633-00306411ed90,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1164,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ69F0P2M4NH7BEW62S7A9,,-1
+2026-04-05 11:42:01,1775389321365,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,5x9k2-1775389320207-4a293e912f0f,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:42:00,1775389320207,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.png,GET,,500,5x9k2-1775389320207-4a293e912f0f,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1101,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ691NVWGZHS7MSTC03YFQ,,-1
+2026-04-05 11:42:00,1775389320488,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,brb2w-1775389319299-bf844fa40d4f,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:59,1775389319299,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,brb2w-1775389319299-bf844fa40d4f,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1139,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ6857NHW8K9YHPHG8VH4Y,,-1
+2026-04-05 11:42:00,1775389320170,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,8hvhk-1775389318993-aa89c16d3d9e,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:58,1775389318993,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,8hvhk-1775389318993-aa89c16d3d9e,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1123,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ67VS7SC757E4BYNSAHH8,,-1
+2026-04-05 11:41:58,1775389318178,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,pw8ss-1775389317008-fa94beaca836,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:57,1775389317008,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,pw8ss-1775389317008-fa94beaca836,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1124,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ65XK2R9GGYEEDB7KQP9N,,-1
+2026-04-05 11:41:56,1775389316859,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,sgj25-1775389315705-4a7b3bc59b92,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:55,1775389315705,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,sgj25-1775389315705-4a7b3bc59b92,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1100,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ64N40JA67P6J19FX99KZ,,-1
+2026-04-05 11:41:54,1775389314613,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,zjlcm-1775389313342-0ca536ee9a8b,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:53,1775389313342,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,zjlcm-1775389313342-0ca536ee9a8b,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1130,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ62E0KGM55DD77XN9GP8J,,-1
+2026-04-05 11:41:53,1775389313204,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,94nv4-1775389312017-125e7a5d02f4,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:52,1775389312017,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,94nv4-1775389312017-125e7a5d02f4,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1133,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ611W2YMTDDYHTY9DQ3MT,,-1
+2026-04-05 11:41:52,1775389312743,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,g7xx9-1775389311579-714b98557530,vercel-screenshot/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:51,1775389311579,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,g7xx9-1775389311579-714b98557530,vercel-screenshot/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1115,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ60M10AY931Z5EF4RMM2V,,-1
+2026-04-05 11:41:52,1775389312685,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,tcpnm-1775389311478-9ba461f9c517,vercel-screenshot/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:51,1775389311478,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/favicon.ico,GET,,500,tcpnm-1775389311478-9ba461f9c517,vercel-screenshot/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1129,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ60HK4NV1V9HWR4TCZNHC,,-1
+2026-04-05 11:41:51,1775389311487,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,gdhjz-1775389310304-d55e804d44fd,vercel-screenshot/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:50,1775389310304,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,gdhjz-1775389310304-d55e804d44fd,vercel-screenshot/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1134,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5ZC3JRZN3EQD7MTA4YVB,,-1
+2026-04-05 11:41:51,1775389311382,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,5x9k2-1775389310218-952a4ac0d5c5,vercel-screenshot/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:50,1775389310218,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,5x9k2-1775389310218-952a4ac0d5c5,vercel-screenshot/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1115,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5Z9FXCQ0BTQKP3WQMD6B,,-1
+2026-04-05 11:41:51,1775389311260,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,tcpnm-1775389308655-216a58ab083f,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:48,1775389308655,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,tcpnm-1775389308655-216a58ab083f,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1117,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5XRMHVEY601NGYEY29E3,,-1
+2026-04-05 11:41:51,1775389311160,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,bch9c-1775389308544-c34fe16dc4ec,vercel-favicon/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:48,1775389308544,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,bch9c-1775389308544-c34fe16dc4ec,vercel-favicon/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1093,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5XR03YPW2B4W77A74FKJ,,-1
+2026-04-05 11:41:50,1775389310764,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,55gsm-1775389308201-c67bc4627208,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:48,1775389308201,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,55gsm-1775389308201-c67bc4627208,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1111,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5XABD94GCN5QRVA6ASRJ,,-1
+2026-04-05 11:41:50,1775389310691,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,7bxq7-1775389308002-45dc39c17a74,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:48,1775389308002,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,7bxq7-1775389308002-45dc39c17a74,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1134,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5X76CEPWDRZBMH06MWBT,,-1
+2026-04-05 11:41:50,1775389310143,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,lkqbb-1775389307525-91b74f765867,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:47,1775389307525,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,lkqbb-1775389307525-91b74f765867,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1132,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5WNGBDP6VYXE7ZXJA475,,-1
+2026-04-05 11:41:50,1775389310084,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,zbpnd-1775389307329-4fe1b27295e7,vercel-screenshot/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:47,1775389307329,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,zbpnd-1775389307329-4fe1b27295e7,vercel-screenshot/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1145,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5WJAAM0DKZFHX7852B6N,,-1
+2026-04-05 11:41:50,1775389310004,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,w5qcj-1775389307241-3a3b79a13049,vercel-screenshot/1.0,error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:47,1775389307241,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,w5qcj-1775389307241-3a3b79a13049,vercel-screenshot/1.0,,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1138,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5WGZBVARJ596R8KN91KG,,-1
+2026-04-05 11:41:49,1775389309843,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,sq27p-1775389306890-61d90fefea8a,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",error,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,,,,,"Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Cannot find module '@/app.service'
+Require stack:
+- /var/task/src/app.controller.js
+- /var/task/src/app.module.js
+- /var/task/src/main.js
+Did you forget to add it to ""dependencies"" in `package.json`?
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,,,
+2026-04-05 11:41:46,1775389306890,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app/,GET,,500,sq27p-1775389306890-61d90fefea8a,"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.0 Safari/537.36",,production,main,MISS,function,/,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,cto-backend-h8pckodxc-poliankiy-arturs-projects.vercel.app,dpl_6CJWH6HM9FHBQcp5Xdp49nzpya7m,1157,iad1,-1,2048,,prj_loW88v0MSGoLO3lwlVY3VqJBbVWU,,,01KNEQ5W8Q2H17P4E32VVDAS34,,-1
