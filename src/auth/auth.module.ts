@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { SupabaseAdminClient } from './supabase.client';
 
+@Global()
 @Module({
   imports: [ConfigModule, PrismaModule],
   providers: [SupabaseAuthGuard, SupabaseAdminClient],

@@ -2,6 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Category {
+  archived: Boolean!
+  id: ID!
+  name: String!
+  storage_id: ID!
+}
+
 type Client {
   archived: Boolean!
   company_id: ID!
@@ -52,10 +59,112 @@ enum CompanyType {
   TIRE_SERVICE
 }
 
+input CreateCategoryInput {
+  name: String!
+}
+
+input CreateClientInput {
+  name: String
+  phone: String!
+}
+
+input CreateDetailInput {
+  article: String
+  buy_price: Float
+  category_id: String
+  count: Int
+  minimum_count: Int
+  name: String
+  sell_price: Float
+  suplier_id: String
+}
+
+input CreateServiceInput {
+  description: String
+  title: String
+}
+
+input CreateSuplierInput {
+  comment: String
+  email: String
+  name: String
+  phone: String
+  site_url: String
+  suplier_name: String
+}
+
+input CreateTaskInput {
+  status: TaskStatus
+  title: String
+  vehicle_id: ID!
+}
+
+input CreateVehicleHistoryInput {
+  distance: Int
+  service_id: ID!
+  status: String
+  task_id: ID!
+}
+
+input CreateVehicleInput {
+  """Client ID (owner of the vehicle)"""
+  client_id: String!
+  vehicle_distance: Int
+  vehicle_make_id: Int
+  vehicle_make_name: String
+  vehicle_model_id: Int
+  vehicle_model_name: String
+  vehicle_number: String
+  vehicle_transmission: String
+  vehicle_type: Int
+  vehicle_vin_code: String
+  vehicle_year: Int!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type Detail {
+  archived: Boolean!
+  article: String
+  buy_price: Float
+  category_id: ID
+  count: Int
+  id: ID!
+  minimum_count: Int
+  name: String
+  sell_price: Float
+  storage_id: ID!
+  suplier_id: ID
+}
+
+type DetailHistory {
+  action_type: Int
+  comment: String
+  count_diff: Int
+  count_result: Int
+  detail_id: ID!
+  id: ID!
+  storage_id: ID!
+  task_id: ID
+  user_id: ID!
+}
+
+input DetailsListInput {
+  categoryId: String
+  limit: Int = 25
+  page: Int = 1
+  search: String
+}
+
+type DetailsListResult {
+  items: [Detail!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
 
 type Invitation {
   company_id: ID!
@@ -65,8 +174,56 @@ type Invitation {
   updated_at: DateTime!
 }
 
+input InviteMemberInput {
+  email: String!
+}
+
+type Invoice {
+  created_at: DateTime!
+  id: ID!
+  pdf_url: String
+  task_id: ID!
+  total_amount: Float!
+  updated_at: DateTime!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type Mutation {
+  acceptInvitation(invitationId: String!): User!
+  archiveCategory(id: ID!): Category!
+  archiveClient(id: String!): Client!
+  archiveDetail(id: String!): Detail!
+  archiveSuplier(id: String!): Suplier!
+  archiveVehicle(id: String!): Vehicle!
+  createCategory(input: CreateCategoryInput!): Category!
+  createClient(input: CreateClientInput!): Client!
   createCompany(companyInput: CompanyInput!): Company!
+  createDetail(input: CreateDetailInput!): Detail!
+  createSuplier(input: CreateSuplierInput!): Suplier!
+  createVehicle(input: CreateVehicleInput!): Vehicle!
+  declineInvitation(invitationId: String!): Boolean!
+  generateInvoice(taskId: ID!): Invoice!
+  inviteMember(input: InviteMemberInput!): Invitation!
+  recordDetailMovement(input: RecordDetailMovementInput!): DetailHistory!
+  serviceCreate(input: CreateServiceInput!): Service!
+  serviceDelete(id: ID!): Service!
+  serviceUpdate(input: UpdateServiceInput!): Service!
+  taskCreate(input: CreateTaskInput!): Task!
+  taskDelete(id: ID!): Task!
+  taskUpdate(input: UpdateTaskInput!): Task!
+  updateCategory(input: UpdateCategoryInput!): Category!
+  updateClient(input: UpdateClientInput!): Client!
+  updateCompany(input: UpdateCompanyInput!): Company!
+  updateDetail(input: UpdateDetailInput!): Detail!
+  updateSuplier(input: UpdateSuplierInput!): Suplier!
+  updateVehicle(input: UpdateVehicleInput!): Vehicle!
+  vehicleHistoryCreate(input: CreateVehicleHistoryInput!): VehicleHistory!
+  vehicleHistoryDelete(id: ID!): VehicleHistory!
+  vehicleHistoryUpdate(input: UpdateVehicleHistoryInput!): VehicleHistory!
 }
 
 type NovaPoshtaAddress {
@@ -97,20 +254,175 @@ enum PhoneValidationValues {
 }
 
 type Query {
+  categories: [Category!]!
   client(id: Int!): Client!
   clients: [Client!]!
   companyMembers: [CompanyMember!]!
   currentUserCompany: Company!
+  dataErrors(jobId: String!): Report
+  detail(id: String!): Detail!
+  detailHistories(detailId: ID, taskId: ID): [DetailHistory!]!
+  details(input: DetailsListInput): DetailsListResult!
   getNpAddress(cityRef: String!, streetName: String!): [NovaPoshtaAddress!]!
   getNpCity(searchTerm: String!): [NovaPoshtaCity!]!
+  invoice(taskId: ID!): Invoice
   me: User!
+  service(id: ID!): Service!
+  services: [Service!]!
+  storage: Storage
+  supliers: [Suplier!]!
+  task(id: ID!): Task!
+  tasks: [Task!]!
   userInvitations: [Invitation!]!
   validatePhone(phone: String!): PhoneValidationValues!
+  vehicleHistories: [VehicleHistory!]!
+  vehicleHistory(id: ID!): VehicleHistory!
   vehicleMakes: [VehicleMake!]!
   vehicleMakesByType(typeId: Int!): [VehicleMake!]!
   vehicleModels: [VehicleModel!]!
   vehicleModelsByMake(makeId: Int!): [VehicleModel!]!
   vehicles(input: VehiclesInput!): [Vehicle!]!
+}
+
+input RecordDetailMovementInput {
+  action_type: Int!
+  comment: String
+  count_diff: Int!
+  detailId: String!
+  taskId: String
+}
+
+type Report {
+  created_at: DateTime!
+  data_errors: JSON
+  id: ID!
+  job_id: String!
+  updated_at: DateTime!
+}
+
+type Service {
+  created_at: DateTime!
+  description: String
+  id: ID!
+  title: String
+  updated_at: DateTime!
+}
+
+type Storage {
+  company_id: ID!
+  id: ID!
+  name: String!
+}
+
+type Suplier {
+  archived: Boolean!
+  comment: String
+  email: String
+  id: ID!
+  name: String
+  phone: String
+  site_url: String
+  storage_id: String!
+  suplier_name: String
+}
+
+type Task {
+  created_at: DateTime!
+  id: ID!
+  status: TaskStatus!
+  title: String
+  updated_at: DateTime!
+  vehicle_id: ID!
+}
+
+"""Possible statuses for a task"""
+enum TaskStatus {
+  """Task has been created"""
+  CREATED
+
+  """Task has been completed"""
+  FINISHED
+
+  """Task is currently in progress"""
+  IN_PROGRESS
+}
+
+input UpdateCategoryInput {
+  id: ID!
+  name: String!
+}
+
+input UpdateClientInput {
+  id: ID!
+  name: String
+  phone: String
+}
+
+input UpdateCompanyInput {
+  address: String
+  address_ref: String
+  city: String
+  city_ref: String
+  company_type: CompanyType
+  house_number: String
+  title: String
+}
+
+input UpdateDetailInput {
+  article: String
+  buy_price: Float
+  category_id: String
+  count: Int
+  id: String!
+  minimum_count: Int
+  name: String
+  sell_price: Float
+  suplier_id: String
+}
+
+input UpdateServiceInput {
+  description: String
+  id: ID!
+  title: String
+}
+
+input UpdateSuplierInput {
+  comment: String
+  email: String
+  id: ID!
+  name: String
+  phone: String
+  site_url: String
+  suplier_name: String
+}
+
+input UpdateTaskInput {
+  id: ID!
+  status: TaskStatus
+  title: String
+  vehicle_id: ID
+}
+
+input UpdateVehicleHistoryInput {
+  distance: Int
+  id: ID!
+  service_id: ID
+  status: String
+  task_id: ID
+}
+
+input UpdateVehicleInput {
+  id: String!
+  vehicle_distance: Int
+  vehicle_make_id: Int
+  vehicle_make_name: String
+  vehicle_model_id: Int
+  vehicle_model_name: String
+  vehicle_number: String
+  vehicle_transmission: String
+  vehicle_type: Int
+  vehicle_vin_code: String
+  vehicle_year: Int
 }
 
 type User {
@@ -135,6 +447,16 @@ type Vehicle {
   vehicleType: Int
   vehicleVinCode: String
   vehicleYear: Int
+}
+
+type VehicleHistory {
+  created_at: DateTime!
+  distance: Int
+  id: ID!
+  service_id: ID!
+  status: String
+  task_id: ID!
+  updated_at: DateTime!
 }
 
 type VehicleMake {

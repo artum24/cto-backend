@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
@@ -24,7 +24,8 @@ export class DetailsResolver {
   @Query(() => DetailsListResult, { name: 'details' })
   async details(
     @CurrentUser() user: AuthContextUser,
-    @Args('input', { nullable: true }) input?: DetailsListInput | null,
+    @Args('input', { nullable: true, type: () => DetailsListInput })
+    input?: DetailsListInput | null,
   ) {
     if (!user.user.company_id) {
       return { items: [], total: 0, page: 1, limit: 25 };
@@ -109,8 +110,8 @@ export class DetailsResolver {
   @Query(() => [DetailHistory], { name: 'detailHistories' })
   async detailHistories(
     @CurrentUser() user: AuthContextUser,
-    @Args('detailId', { nullable: true }) detailId?: string | null,
-    @Args('taskId', { nullable: true }) taskId?: string | null,
+    @Args('detailId', { nullable: true, type: () => ID }) detailId?: string | null,
+    @Args('taskId', { nullable: true, type: () => ID }) taskId?: string | null,
   ) {
     if (!user.user.company_id) return [];
     const storage = await this.storageService.findByCompanyId(
