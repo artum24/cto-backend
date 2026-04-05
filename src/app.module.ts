@@ -32,6 +32,8 @@ import { ReportModule } from '@/modules/report/report.module';
 import { InvoiceModule } from '@/modules/invoice/invoice.module';
 
 const isProduction = process.env.NODE_ENV === 'production';
+/** Vercel / production: no writable `src/schema.gql` — keep schema in memory. */
+const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
 
 @Module({
   imports: [
@@ -58,7 +60,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: graphQLSchemaInMemory
+        ? true
+        : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: false,
       // Disable introspection in production — prevents API schema enumeration
