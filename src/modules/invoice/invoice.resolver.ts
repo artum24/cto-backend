@@ -11,11 +11,18 @@ import { InvoiceService } from './invoice.service';
 export class InvoiceResolver {
   constructor(private readonly invoiceService: InvoiceService) {}
 
+  private companyId(user: AuthContextUser): bigint {
+    if (!user.user.company_id) throw new Error('User is not associated with a company');
+    return BigInt(user.user.company_id);
+  }
+
   @Query(() => Invoice, { name: 'invoice', nullable: true })
   async getInvoice(
     @Args('taskId', { type: () => ID }) taskId: string,
+    @CurrentUser() user: AuthContextUser,
   ) {
-    return this.invoiceService.findByTaskId(BigInt(taskId));
+    // findByTaskId verifies company ownership before returning
+    return this.invoiceService.findByTaskId(BigInt(taskId), this.companyId(user));
   }
 
   @Mutation(() => Invoice, { name: 'generateInvoice' })
@@ -23,9 +30,6 @@ export class InvoiceResolver {
     @Args('taskId', { type: () => ID }) taskId: string,
     @CurrentUser() user: AuthContextUser,
   ) {
-    if (!user.user.company_id) {
-      throw new Error('User is not associated with a company');
-    }
-    return this.invoiceService.generate(BigInt(taskId), BigInt(user.user.company_id));
+    return this.invoiceService.generate(BigInt(taskId), this.companyId(user));
   }
 }

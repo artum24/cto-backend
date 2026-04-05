@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema", "postgresqlExtensions"]
+  previewFeatures = ["multiSchema", "postgresqlExtensions", "driverAdapters"]
 }
 
 datasource db {
@@ -105,6 +105,7 @@ model companies {
   house_number String?       @db.VarChar
   clients      clients[]
   invitations  invitations[]
+  reports      reports[]
   storages     storages[]
   users        users[]
   workspaces   workspaces[]
@@ -193,11 +194,13 @@ model invitations {
 }
 
 model reports {
-  id          BigInt   @id @default(autoincrement())
-  job_id      String?  @unique(map: "index_reports_on_job_id") @db.VarChar
+  id          BigInt     @id @default(autoincrement())
+  job_id      String?    @unique(map: "index_reports_on_job_id") @db.VarChar
   data_errors Json?
-  created_at  DateTime @db.Timestamp(6)
-  updated_at  DateTime @db.Timestamp(6)
+  company_id  BigInt?
+  created_at  DateTime   @db.Timestamp(6)
+  updated_at  DateTime   @db.Timestamp(6)
+  companies   companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
 
   @@schema("public")
 }

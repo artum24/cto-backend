@@ -64,7 +64,7 @@ export class CategoriesResolver {
       throw new Error('Storage not found for this company.');
     }
 
-    return this.categoriesService.update(input, BigInt(storage.id));
+    return this.categoriesService.update(input, BigInt(storage.id)) as unknown as Promise<Category>;
   }
 
   @Mutation(() => Category, { name: 'archiveCategory' })

@@ -9,7 +9,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     const adapter = new PrismaPg(
       new Pool({ connectionString: process.env.DATABASE_URL }),
     );
-    super({ adapter });
+    // `adapter` requires `driverAdapters` preview feature — types update after `npx prisma generate`
+    super({ adapter } as any);
   }
 
   async onModuleInit() {

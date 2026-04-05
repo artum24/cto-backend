@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { PdfGeneratorService, InvoicePdfData, InvoiceLineItem } from './pdf-generator.service';
@@ -18,7 +18,16 @@ export class InvoiceService {
     return this.prisma as PrismaAny;
   }
 
-  async findByTaskId(taskId: bigint) {
+  async findByTaskId(taskId: bigint, companyId: bigint) {
+    // Verify task belongs to this company before returning invoice
+    const task = await this.prisma.tasks.findUnique({
+      where: { id: taskId },
+      include: { vehicles: { include: { clients: true } } },
+    });
+    if (!task) return null;
+    if (task.vehicles.clients.company_id !== companyId) {
+      throw new ForbiddenException('Access denied');
+    }
     const invoice = await this.db.invoices.findUnique({
       where: { task_id: taskId },
     });
@@ -146,7 +155,7 @@ export class InvoiceService {
     if (cached) return cached;
 
     // Regenerate from DB data
-    const invoice = await this.findByTaskId(taskId);
+    const invoice = await this.findByTaskId(taskId, companyId);
     if (!invoice) throw new NotFoundException(`Invoice for task #${taskId} not found`);
 
     // Re-run generate logic to rebuild PDF (reuses same data loading)

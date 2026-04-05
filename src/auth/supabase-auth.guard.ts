@@ -107,23 +107,7 @@ export class SupabaseAuthGuard implements CanActivate {
       };
     }
 
-    const decoded = jwt.decode(token) as {
-      sub?: string;
-      email?: string;
-    } | null;
-    if (decoded?.sub) {
-      return {
-        authUserId: decoded.sub,
-        supabaseUser: {
-          id: decoded.sub,
-          email: decoded.email ?? null,
-          user_metadata: decoded,
-        },
-      };
-    }
-
-    throw new UnauthorizedException(
-      'Supabase token verification failed (check SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or token validity)',
-    );
+    // No fallback to unverified decoding — reject any token Supabase cannot verify
+    throw new UnauthorizedException('Invalid or expired token');
   }
 }

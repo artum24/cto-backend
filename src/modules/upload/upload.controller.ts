@@ -16,6 +16,11 @@ import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1 MB
 
+const ALLOWED_MIME_TYPES = [
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
 @Controller('upload-xlsx-clients')
 @UseGuards(SupabaseAuthGuard)
 export class UploadController {
@@ -35,6 +40,10 @@ export class UploadController {
 
     if (file.size > MAX_FILE_SIZE) {
       throw new UnprocessableEntityException('File too large');
+    }
+
+    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException('Only Excel files (.xlsx, .xls) are allowed');
     }
 
     if (!user.user.company_id) {

@@ -66,11 +66,13 @@ export class XlsxProcessorService {
       });
     }
 
-    // Save report — frontend polls this via dataErrors(jobId) query
-    await this.prisma.reports.create({
+    // Save report with company_id — frontend polls this via dataErrors(jobId) query
+    // Cast to any for new fields until `prisma generate` is run locally
+    await (this.prisma.reports as any).create({
       data: {
         job_id: jobId,
-        data_errors: dataErrors,
+        data_errors: dataErrors as any,
+        company_id: companyId,
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -132,8 +134,8 @@ export class XlsxProcessorService {
         await tx.vehicles.create({
           data: {
             client_id: client.id,
-            vehicle_make_id: vehicleMake?.id ?? null,
-            vehicle_model_id: vehicleModel?.id ?? null,
+            vehicle_make_id: vehicleMake ? Number(vehicleMake.id) : null,
+            vehicle_model_id: vehicleModel ? Number(vehicleModel.id) : null,
             vehicle_number: vehicleNumber,
             vehicle_year: vehicleYear ? parseInt(vehicleYear) : 0,
             vehicle_vin_code: vinCode,
