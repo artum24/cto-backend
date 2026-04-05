@@ -50,11 +50,11 @@ export class UploadController {
       throw new BadRequestException('User is not associated with a company');
     }
 
-    const jobId = await this.uploadService.enqueueXlsxImport(
+    const { jobId, errorCount } = await this.uploadService.importXlsxClients(
       file.buffer,
       BigInt(user.user.company_id),
     );
 
-    return { jobId };
+    return { jobId, errorCount };
   }
 }

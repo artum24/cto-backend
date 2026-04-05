@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { read, utils } from 'xlsx';
 import { PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import type { XlsxImportPayload } from './upload.service';
-import { XLSX_IMPORT_EVENT } from './upload.service';
 
 interface DataError {
   id: number;
@@ -31,9 +28,15 @@ export class XlsxProcessorService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  @OnEvent(XLSX_IMPORT_EVENT, { async: true })
-  async handleXlsxImport(payload: XlsxImportPayload): Promise<void> {
-    const { jobId, fileBuffer, companyId } = payload;
+  /**
+   * Parses XLSX, upserts clients/vehicles, persists a Report row for dataErrors(jobId).
+   * Runs synchronously in the HTTP request (serverless-safe).
+   */
+  async processImport(
+    jobId: string,
+    fileBuffer: Buffer,
+    companyId: bigint,
+  ): Promise<{ errorCount: number }> {
     const dataErrors: DataError[] = [];
 
     try {
@@ -43,7 +46,11 @@ export class XlsxProcessorService {
 
       for (const row of rows) {
         // Skip header row or empty rows
-        if (!row || row.length === 0 || typeof row[0] === 'string' && row[0].toLowerCase() === 'name') {
+        if (
+          !row ||
+          row.length === 0 ||
+          (typeof row[0] === 'string' && row[0].toLowerCase() === 'name')
+        ) {
           continue;
         }
 
@@ -66,8 +73,6 @@ export class XlsxProcessorService {
       });
     }
 
-    // Save report with company_id — frontend polls this via dataErrors(jobId) query
-    // Cast to any for new fields until `prisma generate` is run locally
     await (this.prisma.reports as any).create({
       data: {
         job_id: jobId,
@@ -79,6 +84,8 @@ export class XlsxProcessorService {
     });
 
     this.logger.log(`XLSX import done. jobId=${jobId}, errors=${dataErrors.length}`);
+
+    return { errorCount: dataErrors.length };
   }
 
   private async processRow(

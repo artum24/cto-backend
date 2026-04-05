@@ -1,29 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'crypto';
-
-export const XLSX_IMPORT_EVENT = 'xlsx.import';
-
-export interface XlsxImportPayload {
-  jobId: string;
-  fileBuffer: Buffer;
-  companyId: bigint;
-}
+import { XlsxProcessorService } from './xlsx-processor.service';
 
 @Injectable()
 export class UploadService {
-  constructor(private readonly eventEmitter: EventEmitter2) {}
+  constructor(private readonly xlsxProcessor: XlsxProcessorService) {}
 
-  async enqueueXlsxImport(fileBuffer: Buffer, companyId: bigint): Promise<string> {
+  /**
+   * Import runs in the same request; report is written before return (dataErrors(jobId) is ready immediately).
+   */
+  async importXlsxClients(
+    fileBuffer: Buffer,
+    companyId: bigint,
+  ): Promise<{ jobId: string; errorCount: number }> {
     const jobId = randomUUID();
-
-    // Emit async — processing happens in background, request returns immediately
-    this.eventEmitter.emit(XLSX_IMPORT_EVENT, {
+    const { errorCount } = await this.xlsxProcessor.processImport(
       jobId,
       fileBuffer,
       companyId,
-    } satisfies XlsxImportPayload);
-
-    return jobId;
+    );
+    return { jobId, errorCount };
   }
 }
