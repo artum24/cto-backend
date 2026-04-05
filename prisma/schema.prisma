@@ -212,10 +212,24 @@ model services {
   id                BigInt              @id @default(autoincrement())
   title             String?             @db.VarChar
   description       String?             @db.VarChar
+  price             Decimal?            @db.Decimal
   created_at        DateTime            @db.Timestamp(6)
   updated_at        DateTime            @db.Timestamp(6)
   vehicle_histories vehicle_histories[]
 
+  @@schema("public")
+}
+
+model invoices {
+  id           BigInt   @id @default(autoincrement())
+  task_id      BigInt   @unique
+  total_amount Decimal  @db.Decimal
+  pdf_url      String?  @db.Text
+  created_at   DateTime @db.Timestamp(6)
+  updated_at   DateTime @db.Timestamp(6)
+  tasks        tasks    @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@index([task_id], map: "index_invoices_on_task_id")
   @@schema("public")
 }
 
@@ -263,6 +277,7 @@ model tasks {
   created_at        DateTime            @db.Timestamp(6)
   updated_at        DateTime            @db.Timestamp(6)
   detail_histories  detail_histories[]
+  invoices          invoices?
   vehicles          vehicles            @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_e6342a7e7d")
   vehicle_histories vehicle_histories[]
 

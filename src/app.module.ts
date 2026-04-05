@@ -22,10 +22,18 @@ import { StorageModule } from '@/modules/storage/storage.module';
 import { CategoriesModule } from '@/modules/categories/categories.module';
 import { SupliersModule } from '@/modules/supliers/supliers.module';
 import { DetailsModule } from '@/modules/details/details.module';
+import { ServicesModule } from '@/modules/services/services.module';
+import { TasksModule } from '@/modules/tasks/tasks.module';
+import { VehicleHistoryModule } from '@/modules/vehicle-history/vehicle-history.module';
+import { UploadModule } from '@/modules/upload/upload.module';
+import { ReportModule } from '@/modules/report/report.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { InvoiceModule } from '@/modules/invoice/invoice.module';
 
 @Module({
   imports: [
     HttpModule,
+    EventEmitterModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -63,6 +71,12 @@ import { DetailsModule } from '@/modules/details/details.module';
     CategoriesModule,
     SupliersModule,
     DetailsModule,
+    ServicesModule,
+    TasksModule,
+    VehicleHistoryModule,
+    UploadModule,
+    ReportModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

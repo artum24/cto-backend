@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CompanyInput } from './inputs/company.input';
@@ -43,22 +43,20 @@ export class CompanyService {
       [CompanyType.TIRE_SERVICE]: 2,
       [CompanyType.CAR_WASH]: 3,
     };
-    const data = {
+    const data: Prisma.companiesUpdateInput = {
       updated_at: new Date(),
-    };
-    if (input.title !== undefined) data.title = input.title ?? null;
-    if (input.city !== undefined) data.city = input.city ?? null;
-    if (input.city_ref !== undefined) data.city_ref = input.city_ref ?? null;
-    if (input.address !== undefined) data.address = input.address ?? null;
-    if (input.address_ref !== undefined)
-      data.address_ref = input.address_ref ?? null;
-    if (input.house_number !== undefined)
-      data.house_number = input.house_number ?? null;
-    if (input.company_type !== undefined)
-      data.company_type =
-        input.company_type != null
+      ...(input.title !== undefined && { title: input.title ?? null }),
+      ...(input.city !== undefined && { city: input.city ?? null }),
+      ...(input.city_ref !== undefined && { city_ref: input.city_ref ?? null }),
+      ...(input.address !== undefined && { address: input.address ?? null }),
+      ...(input.address_ref !== undefined && { address_ref: input.address_ref ?? null }),
+      ...(input.house_number !== undefined && { house_number: input.house_number ?? null }),
+      ...(input.company_type !== undefined && {
+        company_type: input.company_type != null
           ? companyTypeMap[input.company_type]
-          : null;
+          : null,
+      }),
+    };
 
     const updated = await this.prisma.companies.update({
       where: { id: companyId },
