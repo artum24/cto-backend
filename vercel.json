@@ -9,7 +9,7 @@
       "use": "@vercel/node",
       "config": {
         "bundle": false,
-        "includeFiles": ["dist/**", "prisma/**"]
+        "includeFiles": ["../dist/**", "../prisma/**"]
       }
     }
   ],
