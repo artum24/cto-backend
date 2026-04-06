@@ -31,9 +31,14 @@ function contentSecurityPolicy():
         "'self'",
         'https://embeddable-sandbox.cdn.apollographql.com',
         'https://apollo-server-landing-page.cdn.apollographql.com',
+        'https://sandbox.embed.apollographql.com',
       ],
       manifestSrc: ['https://apollo-server-landing-page.cdn.apollographql.com'],
-      frameSrc: ["'self'", 'https://embeddable-sandbox.cdn.apollographql.com'],
+      frameSrc: [
+        "'self'",
+        'https://embeddable-sandbox.cdn.apollographql.com',
+        'https://sandbox.embed.apollographql.com',
+      ],
     },
   };
 }
