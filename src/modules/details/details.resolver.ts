@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
@@ -8,6 +8,10 @@ import { Detail } from './models/detail.model';
 import { DetailHistory } from './models/detail-history.model';
 import { DetailsListResult } from './models/details-list.model';
 import { DetailsService } from './details.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { bigintToString } from '@/common/mappers/bigint.mapper';
+import { Category } from '@/modules/categories/models/category.model';
+import { Suplier } from '@/modules/supliers/models/suplier.model';
 import { CreateDetailInput } from './inputs/create-detail.input';
 import { UpdateDetailInput } from './inputs/update-detail.input';
 import { DetailsListInput } from './inputs/details-list.input';
@@ -19,7 +23,36 @@ export class DetailsResolver {
   constructor(
     private readonly detailsService: DetailsService,
     private readonly storageService: StorageService,
+    private readonly prisma: PrismaService,
   ) {}
+
+  @ResolveField(() => Category, { nullable: true })
+  async category(@Parent() detail: Detail): Promise<Category | null> {
+    if (!detail.category_id) {
+      return null;
+    }
+    const row = await this.prisma.categories.findFirst({
+      where: {
+        id: BigInt(detail.category_id),
+        storage_id: BigInt(detail.storage_id),
+      },
+    });
+    return row ? (bigintToString(row) as unknown as Category) : null;
+  }
+
+  @ResolveField(() => Suplier, { nullable: true })
+  async suplier(@Parent() detail: Detail): Promise<Suplier | null> {
+    if (!detail.suplier_id) {
+      return null;
+    }
+    const row = await this.prisma.supliers.findFirst({
+      where: {
+        id: BigInt(detail.suplier_id),
+        storage_id: BigInt(detail.storage_id),
+      },
+    });
+    return row ? (bigintToString(row) as unknown as Suplier) : null;
+  }
 
   @Query(() => DetailsListResult, { name: 'details' })
   async details(

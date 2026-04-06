@@ -3,7 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { GqlThrottlerGuard } from '@/common/guards/gql-throttler.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 import Joi from 'joi';
@@ -109,7 +110,7 @@ const graphQLIntrospection = enableApolloSandbox
   providers: [
     AppService,
     // Apply rate limiting globally
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: GqlThrottlerGuard },
   ],
 })
 export class AppModule {}

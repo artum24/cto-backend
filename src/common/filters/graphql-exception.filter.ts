@@ -1,4 +1,10 @@
-import { Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import {
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  type HttpServer,
+} from '@nestjs/common';
+import { BaseExceptionFilter } from '@nestjs/core';
 import { GqlExceptionFilter, GqlArgumentsHost } from '@nestjs/graphql';
 import { ApolloError, ForbiddenError, AuthenticationError } from 'apollo-server-core';
 
@@ -14,9 +20,31 @@ const SAFE_EXCEPTION_TYPES = [
   'UnprocessableEntityException',
 ];
 
+const DEFAULT_GQL_PATH = '/graphql';
+
 @Catch()
-export class GraphQLExceptionFilter implements GqlExceptionFilter {
+export class GraphQLExceptionFilter
+  extends BaseExceptionFilter
+  implements GqlExceptionFilter
+{
+  constructor(httpAdapter: HttpServer) {
+    super(httpAdapter);
+  }
+
   catch(exception: unknown, host: ArgumentsHost) {
+    // Global filter runs for all HTTP routes; only normalize errors for GraphQL HTTP.
+    if (host.getType() === 'http') {
+      const req = host.switchToHttp().getRequest<{ url?: string; path?: string }>();
+      const path = (req.path ?? req.url?.split('?')[0] ?? '').split('?')[0];
+      const gqlPath = process.env.GRAPHQL_PATH ?? DEFAULT_GQL_PATH;
+      if (path !== gqlPath && !path.startsWith(`${gqlPath}/`)) {
+        return super.catch(exception, host);
+      }
+    } else {
+      // ws / rpc / etc. — BaseExceptionFilter needs HTTP response; rethrow for other contexts
+      throw exception;
+    }
+
     GqlArgumentsHost.create(host);
 
     if (exception instanceof ApolloError) {

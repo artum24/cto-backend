@@ -130,6 +130,7 @@ type Detail {
   archived: Boolean!
   article: String
   buy_price: Float
+  category: Category
   category_id: ID
   count: Int
   id: ID!
@@ -137,6 +138,7 @@ type Detail {
   name: String
   sell_price: Float
   storage_id: ID!
+  suplier: Suplier
   suplier_id: ID
 }
 

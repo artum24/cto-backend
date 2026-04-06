@@ -1,4 +1,6 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Category } from '@/modules/categories/models/category.model';
+import { Suplier } from '@/modules/supliers/models/suplier.model';
 
 @ObjectType()
 export class Detail {
@@ -34,4 +36,10 @@ export class Detail {
 
   @Field(() => Boolean)
   archived!: boolean;
+
+  @Field(() => Category, { nullable: true })
+  category?: Category | null;
+
+  @Field(() => Suplier, { nullable: true })
+  suplier?: Suplier | null;
 }

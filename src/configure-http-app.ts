@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { GraphQLExceptionFilter } from '@/common/filters/graphql-exception.filter';
+import type { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -44,6 +45,11 @@ function contentSecurityPolicy():
 }
 
 export function configureHttpApp(app: INestApplication): void {
+  const expressApp = app.getHttpAdapter().getInstance() as Application;
+  expressApp.get('/favicon.ico', (_req: Request, res: Response) => {
+    res.status(204).end();
+  });
+
   app.use(
     helmet({
       crossOriginEmbedderPolicy: false,
@@ -69,5 +75,5 @@ export function configureHttpApp(app: INestApplication): void {
     }),
   );
 
-  app.useGlobalFilters(new GraphQLExceptionFilter());
+  app.useGlobalFilters(new GraphQLExceptionFilter(app.getHttpAdapter()));
 }
