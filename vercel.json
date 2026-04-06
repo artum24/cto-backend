@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npm install",
   "buildCommand": "npm run build",
-  "functions": {
-    "api/index.js": {
-      "externalPackages": ["@prisma/client", "@prisma/adapter-pg", "pg", "xlsx", "pdf-lib"]
-    }
-  },
+  "installCommand": "npm install",
   "routes": [{ "src": "/(.*)", "dest": "/api/index.js" }]
 }

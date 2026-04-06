@@ -1,30 +1,34 @@
 /**
- * Vercel serverless entry. Requires `npm run build` first (outputs `dist/`).
- * Uses the underlying Express instance from Nest — no Lambda event adapter.
+ * Vercel serverless entry point.
+ * tsconfig-paths resolves @/ aliases at runtime from dist/.
  */
+const path = require('path');
+
+// Register @/ -> dist/ path mapping so Node can resolve aliases in compiled output
+require('tsconfig-paths').register({
+  baseUrl: path.join(__dirname, '..'),
+  paths: { '@/*': ['dist/*'] },
+});
+
 const { NestFactory } = require('@nestjs/core');
 const { AppModule } = require('../dist/app.module');
 const { configureHttpApp } = require('../dist/configure-http-app');
 
-let expressApp;
+let app;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
+  app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
   configureHttpApp(app);
   await app.init();
-  expressApp = app.getHttpAdapter().getInstance();
 }
 
+const bootstrapPromise = bootstrap().catch((err) => {
+  console.error('Bootstrap failed:', err.message);
+  process.exit(1);
+});
+
 module.exports = async (req, res) => {
-  try {
-    if (!expressApp) {
-      await bootstrap();
-    }
-    expressApp(req, res);
-  } catch (err) {
-    console.error('api/index.js bootstrap failed:', err);
-    if (!res.headersSent) {
-      res.status(500).json({ message: 'Internal Server Error' });
-    }
-  }
+  await bootstrapPromise;
+  const expressApp = app.getHttpAdapter().getInstance();
+  return expressApp(req, res);
 };
