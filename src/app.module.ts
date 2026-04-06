@@ -34,6 +34,9 @@ import { InvoiceModule } from '@/modules/invoice/invoice.module';
 const isProduction = process.env.NODE_ENV === 'production';
 /** Vercel / production: no writable `src/schema.gql` — keep schema in memory. */
 const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
+/** Embedded Apollo Sandbox (schema + query UI). Off in prod unless ENABLE_APOLLO_SANDBOX=true. */
+const enableApolloSandbox =
+  !isProduction || process.env.ENABLE_APOLLO_SANDBOX === 'true';
 
 @Module({
   imports: [
@@ -55,6 +58,7 @@ const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
         NODE_ENV: Joi.string()
           .valid('development', 'test', 'production')
           .default('development'),
+        ENABLE_APOLLO_SANDBOX: Joi.string().valid('true', 'false').optional(),
       }),
     }),
 
@@ -69,7 +73,9 @@ const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
       playground: false,
       // Allow introspection unless explicitly disabled (set INTROSPECTION=false in prod when ready)
       introspection: process.env.INTROSPECTION !== 'false',
-      plugins: isProduction ? [] : [ApolloServerPluginLandingPageLocalDefault()],
+      plugins: enableApolloSandbox
+        ? [ApolloServerPluginLandingPageLocalDefault()]
+        : [],
       context: ({ req, res }: { req: Request; res: Response }) => ({
         req,
         res,
