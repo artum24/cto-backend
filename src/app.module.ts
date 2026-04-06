@@ -37,6 +37,10 @@ const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
 /** Embedded Apollo Sandbox (schema + query UI). Off in prod unless ENABLE_APOLLO_SANDBOX=true. */
 const enableApolloSandbox =
   !isProduction || process.env.ENABLE_APOLLO_SANDBOX === 'true';
+/** Apollo 4 turns introspection off in production unless explicitly true. Sandbox needs it on. */
+const graphQLIntrospection = enableApolloSandbox
+  ? true
+  : process.env.INTROSPECTION !== 'false';
 
 @Module({
   imports: [
@@ -59,6 +63,7 @@ const enableApolloSandbox =
           .valid('development', 'test', 'production')
           .default('development'),
         ENABLE_APOLLO_SANDBOX: Joi.string().valid('true', 'false').optional(),
+        INTROSPECTION: Joi.string().valid('true', 'false').optional(),
       }),
     }),
 
@@ -71,8 +76,7 @@ const enableApolloSandbox =
         : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: false,
-      // Allow introspection unless explicitly disabled (set INTROSPECTION=false in prod when ready)
-      introspection: process.env.INTROSPECTION !== 'false',
+      introspection: graphQLIntrospection,
       plugins: enableApolloSandbox
         ? [ApolloServerPluginLandingPageLocalDefault()]
         : [],
