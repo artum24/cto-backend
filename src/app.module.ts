@@ -60,13 +60,15 @@ const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      // Apollo 4 blocks some Content-Types (CSRF); we use Bearer JWT, not cookies.
+      csrfPrevention: false,
       autoSchemaFile: graphQLSchemaInMemory
         ? true
         : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: false,
-      // Disable introspection in production — prevents API schema enumeration
-      introspection: !isProduction,
+      // Allow introspection unless explicitly disabled (set INTROSPECTION=false in prod when ready)
+      introspection: process.env.INTROSPECTION !== 'false',
       plugins: isProduction ? [] : [ApolloServerPluginLandingPageLocalDefault()],
       context: ({ req, res }: { req: Request; res: Response }) => ({
         req,
