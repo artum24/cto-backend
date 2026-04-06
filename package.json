@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "prisma generate && nest build && tsc-alias -p tsconfig.build.json && rm -rf api/dist && cp -r dist api/dist",
+    "build": "prisma generate && nest build && find dist -name '*.d.ts' -delete && find dist -name '*.map' -delete",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

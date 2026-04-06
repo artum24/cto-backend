@@ -3,9 +3,8 @@
  * Uses the underlying Express instance from Nest — no Lambda event adapter.
  */
 const { NestFactory } = require('@nestjs/core');
-// Vercel places `includeFiles` alongside the handler — dist/ is at ./dist/ not ../dist/
-const { AppModule } = require('./dist/app.module');
-const { configureHttpApp } = require('./dist/configure-http-app');
+const { AppModule } = require('../dist/app.module');
+const { configureHttpApp } = require('../dist/configure-http-app');
 
 let expressApp;
 

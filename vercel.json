@@ -8,7 +8,7 @@
       "src": "api/index.js",
       "use": "@vercel/node",
       "config": {
-        "bundle": false
+        "externalPackages": ["@prisma/client", "@prisma/adapter-pg", "pg"]
       }
     }
   ],
