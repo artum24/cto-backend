@@ -1,16 +1,11 @@
 {
   "version": 2,
-  "framework": null,
   "installCommand": "npm install",
   "buildCommand": "npm run build",
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "externalPackages": ["@prisma/client", "@prisma/adapter-pg", "pg"]
-      }
+  "functions": {
+    "api/index.js": {
+      "externalPackages": ["@prisma/client", "@prisma/adapter-pg", "pg", "xlsx", "pdf-lib"]
     }
-  ],
+  },
   "routes": [{ "src": "/(.*)", "dest": "/api/index.js" }]
 }
