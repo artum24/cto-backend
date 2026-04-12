@@ -1,4 +1,5 @@
-import { Field, ObjectType, Int, ID } from '@nestjs/graphql';
+import { Field, ObjectType, ID } from '@nestjs/graphql';
+import { CompanyType } from '@/modules/company/enums/company-type.enum';
 
 @ObjectType()
 export class Company {
@@ -8,8 +9,8 @@ export class Company {
   @Field(() => String, { nullable: true })
   title?: string | null;
 
-  @Field(() => Int, { nullable: true, name: 'companyType' })
-  company_type?: number | null;
+  @Field(() => CompanyType, { nullable: true, name: 'companyType' })
+  company_type?: CompanyType | null;
 
   @Field(() => String, { nullable: true })
   city?: string | null;

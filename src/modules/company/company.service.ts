@@ -5,7 +5,6 @@ import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CompanyInput } from './inputs/company.input';
 import { UpdateCompanyInput } from './inputs/update-company.input';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
-import { CompanyType } from './enums/company-type.enum';
 import { SupabaseAdminClient } from '@/auth/supabase.client';
 
 @Injectable()
@@ -38,11 +37,6 @@ export class CompanyService {
     if (!company) {
       throw new Error('Company not found.');
     }
-    const companyTypeMap: Record<CompanyType, number> = {
-      [CompanyType.CTO]: 1,
-      [CompanyType.TIRE_SERVICE]: 2,
-      [CompanyType.CAR_WASH]: 3,
-    };
     const data: Prisma.companiesUpdateInput = {
       updated_at: new Date(),
       ...(input.title !== undefined && { title: input.title ?? null }),
@@ -51,10 +45,9 @@ export class CompanyService {
       ...(input.address !== undefined && { address: input.address ?? null }),
       ...(input.address_ref !== undefined && { address_ref: input.address_ref ?? null }),
       ...(input.house_number !== undefined && { house_number: input.house_number ?? null }),
+      // CompanyType enum values are integers (CTO=1, TIRE_SERVICE=2, CAR_WASH=3)
       ...(input.company_type !== undefined && {
-        company_type: input.company_type != null
-          ? companyTypeMap[input.company_type]
-          : null,
+        company_type: input.company_type ?? null,
       }),
     };
 
@@ -95,15 +88,10 @@ export class CompanyService {
   }
 
   async create(companyInput: CompanyInput, currentUser: AuthContextUser) {
-    const companyTypeMap: Record<CompanyType, number> = {
-      [CompanyType.CTO]: 1,
-      [CompanyType.TIRE_SERVICE]: 2,
-      [CompanyType.CAR_WASH]: 3,
-    };
-
+    // CompanyType enum values are integers (CTO=1, TIRE_SERVICE=2, CAR_WASH=3)
     const companyData = {
       title: companyInput.title,
-      company_type: companyTypeMap[companyInput.companyType],
+      company_type: companyInput.companyType,
       city: companyInput.city,
       city_ref: companyInput.cityRef,
       address: companyInput.address,

@@ -1,9 +1,9 @@
 import { registerEnumType } from '@nestjs/graphql';
 
 export enum CompanyType {
-  CTO = 'cto',
-  TIRE_SERVICE = 'tire_service',
-  CAR_WASH = 'car_wash',
+  CTO = 1,
+  TIRE_SERVICE = 2,
+  CAR_WASH = 3,
 }
 
 registerEnumType(CompanyType, {

@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import {
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
@@ -7,6 +8,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { VehicleType } from '@/modules/vehicle/enums/vehicle-type.enum';
 
 @InputType()
 export class UpdateVehicleInput {
@@ -45,10 +47,10 @@ export class UpdateVehicleInput {
   @Length(1, 50)
   vehicle_transmission?: string | null;
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => VehicleType, { nullable: true })
   @IsOptional()
-  @IsInt()
-  vehicle_type?: number | null;
+  @IsEnum(VehicleType)
+  vehicle_type?: VehicleType | null;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()

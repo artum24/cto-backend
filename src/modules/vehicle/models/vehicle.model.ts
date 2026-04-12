@@ -1,5 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Client } from '@/modules/client/models/client.model';
+import { VehicleType } from '@/modules/vehicle/enums/vehicle-type.enum';
 
 @ObjectType()
 export class Vehicle {
@@ -39,10 +40,9 @@ export class Vehicle {
   @Field(() => String, { nullable: true, name: 'vehicleTransmission' })
   vehicle_transmission!: string | null;
 
-  @Field(() => Int, { nullable: true, name: 'vehicleType' })
-  vehicle_type!: number | null;
+  @Field(() => VehicleType, { nullable: true, name: 'vehicleType' })
+  vehicle_type!: VehicleType | null;
 
-  @Field(() => Client)
-  client!: Client;
+  @Field(() => Client, { nullable: true })
+  client?: Client | null;
 }
-
