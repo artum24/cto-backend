@@ -206,6 +206,22 @@ export class DetailsService {
     return bigintToString(row);
   }
 
+  async remove(storageId: bigint, id: string): Promise<boolean> {
+    await this.ensureStorageAccess(storageId);
+    const idBigInt = BigInt(id);
+    const existing = await this.prisma.details.findFirst({
+      where: { id: idBigInt, storage_id: storageId },
+    });
+    if (!existing) {
+      throw new Error('Detail not found in this storage.');
+    }
+    await this.prisma.$transaction(async (tx: PrismaClient) => {
+      await tx.detail_histories.deleteMany({ where: { detail_id: idBigInt } });
+      await tx.details.delete({ where: { id: idBigInt } });
+    });
+    return true;
+  }
+
   async findDetailHistories(
     storageId: bigint,
     filters: { detailId?: string; taskId?: string } = {},
@@ -220,6 +236,48 @@ export class DetailsService {
       take: 100,
     });
     return list.map(bigintToString);
+  }
+
+  async detailCountUpdate(
+    storageId: bigint,
+    userId: string,
+    id: string,
+    newCount: number,
+  ) {
+    await this.ensureStorageAccess(storageId);
+    const detailId = BigInt(id);
+    const detail = await this.prisma.details.findFirst({
+      where: { id: detailId, storage_id: storageId },
+    });
+    if (!detail) throw new Error('Detail not found in this storage.');
+
+    const currentCount = detail.count ?? 0;
+    const countDiff = Math.abs(currentCount - newCount);
+    const now = new Date();
+
+    const updatedDetail = await this.prisma.$transaction(async (tx: PrismaClient) => {
+      const updated = await tx.details.update({
+        where: { id: detailId },
+        data: { count: newCount, updated_at: now },
+      });
+      await tx.detail_histories.create({
+        data: {
+          detail_id: detailId,
+          storage_id: storageId,
+          user_id: userId,
+          action_type: 3, // correction
+          count_diff: countDiff,
+          count_result: newCount,
+          comment: 'Зміна кількості',
+          task_id: null,
+          created_at: now,
+          updated_at: now,
+        },
+      });
+      return updated;
+    });
+
+    return bigintToString(updatedDetail);
   }
 
   async recordDetailMovement(

@@ -1,4 +1,13 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ID,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
@@ -6,6 +15,7 @@ import { CurrentUser } from '@/auth/current-user.decorator';
 import { StorageService } from '@/modules/storage/storage.service';
 import { Detail } from './models/detail.model';
 import { DetailHistory } from './models/detail-history.model';
+import { DetailHistoryUser } from './models/detail-history-user.model';
 import { DetailsListResult } from './models/details-list.model';
 import { DetailsService } from './details.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -140,6 +150,23 @@ export class DetailsResolver {
     return this.detailsService.archive(BigInt(storage.id), id);
   }
 
+  @Mutation(() => Boolean, { name: 'deleteDetail' })
+  async deleteDetail(
+    @CurrentUser() user: AuthContextUser,
+    @Args('id') id: string,
+  ) {
+    if (!user.user.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    const storage = await this.storageService.findByCompanyId(
+      BigInt(user.user.company_id),
+    );
+    if (!storage) {
+      throw new Error('Storage not found for this company.');
+    }
+    return this.detailsService.remove(BigInt(storage.id), id);
+  }
+
   @Query(() => [DetailHistory], { name: 'detailHistories' })
   async detailHistories(
     @CurrentUser() user: AuthContextUser,
@@ -155,6 +182,29 @@ export class DetailsResolver {
       detailId: detailId ?? undefined,
       taskId: taskId ?? undefined,
     });
+  }
+
+  @Mutation(() => Detail, { name: 'detailCountUpdate' })
+  async detailCountUpdate(
+    @CurrentUser() user: AuthContextUser,
+    @Args('id') id: string,
+    @Args('count', { type: () => Int }) count: number,
+  ) {
+    if (!user.user.company_id || !user.user.id) {
+      throw new Error('User is not associated with a company.');
+    }
+    const storage = await this.storageService.findByCompanyId(
+      BigInt(user.user.company_id),
+    );
+    if (!storage) {
+      throw new Error('Storage not found for this company.');
+    }
+    return this.detailsService.detailCountUpdate(
+      BigInt(storage.id),
+      user.user.id,
+      id,
+      count,
+    );
   }
 
   @Mutation(() => DetailHistory, { name: 'recordDetailMovement' })
@@ -176,5 +226,21 @@ export class DetailsResolver {
       user.user.id,
       input,
     );
+  }
+}
+
+@Resolver(() => DetailHistory)
+export class DetailHistoryResolver {
+  constructor(private readonly prisma: PrismaService) {}
+
+  @ResolveField(() => DetailHistoryUser, { nullable: true })
+  async user(@Parent() history: DetailHistory): Promise<DetailHistoryUser | null> {
+    if (!history.user_id) return null;
+    const row = await this.prisma.users.findUnique({
+      where: { id: history.user_id },
+      select: { id: true, email: true },
+    });
+    if (!row) return null;
+    return { id: row.id, email: row.email ?? null, full_name: null };
   }
 }

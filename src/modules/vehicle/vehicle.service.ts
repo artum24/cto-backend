@@ -239,5 +239,26 @@ export class VehicleService {
       client: bigintToString(archived.clients),
     };
   }
+
+  async remove(companyId: bigint, id: string): Promise<boolean> {
+    const idBigInt = BigInt(id);
+    const existing = await this.prisma.vehicles.findFirst({
+      where: { id: idBigInt },
+      include: { clients: true },
+    });
+    if (!existing || existing.clients.company_id !== companyId) {
+      throw new Error('Vehicle not found or does not belong to your company.');
+    }
+    const tasksCount = await this.prisma.tasks.count({
+      where: { vehicle_id: idBigInt },
+    });
+    if (tasksCount > 0) {
+      throw new Error(
+        `Cannot delete vehicle: ${tasksCount} task(s) are still linked.`,
+      );
+    }
+    await this.prisma.vehicles.delete({ where: { id: idBigInt } });
+    return true;
+  }
 }
 

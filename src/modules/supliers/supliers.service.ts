@@ -76,4 +76,24 @@ export class SupliersService {
     });
     return bigintToString(row);
   }
+
+  async remove(storageId: bigint, id: string): Promise<boolean> {
+    const idBigInt = BigInt(id);
+    const existing = await this.prisma.supliers.findFirst({
+      where: { id: idBigInt, storage_id: storageId },
+    });
+    if (!existing) {
+      throw new Error('Suplier not found in this storage.');
+    }
+    const detailsCount = await this.prisma.details.count({
+      where: { suplier_id: idBigInt },
+    });
+    if (detailsCount > 0) {
+      throw new Error(
+        `Cannot delete supplier: ${detailsCount} detail(s) still reference it.`,
+      );
+    }
+    await this.prisma.supliers.delete({ where: { id: idBigInt } });
+    return true;
+  }
 }

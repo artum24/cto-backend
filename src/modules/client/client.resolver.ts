@@ -103,6 +103,18 @@ export class ClientsResolver {
   }
 
   @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Boolean, { name: 'deleteClient' })
+  async deleteClient(
+    @CurrentUser() current: AuthContextUser,
+    @Args('id') id: string,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.clientsService.remove(BigInt(current.user.company_id), id);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
   @Query(() => PhoneValidationValues, { name: 'validatePhone' })
   async validatePhone(
     @CurrentUser() current: AuthContextUser,

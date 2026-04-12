@@ -63,4 +63,23 @@ export class CategoriesService {
 
     return bigintToString(updatedCategory);
   }
+
+  async remove(categoryId: bigint, storageId: bigint): Promise<boolean> {
+    const category = await this.prisma.categories.findFirst({
+      where: { id: categoryId, storage_id: storageId },
+    });
+    if (!category) {
+      throw new Error('Category not found in this storage');
+    }
+    const detailsCount = await this.prisma.details.count({
+      where: { category_id: categoryId },
+    });
+    if (detailsCount > 0) {
+      throw new Error(
+        `Cannot delete category: ${detailsCount} detail(s) still reference it.`,
+      );
+    }
+    await this.prisma.categories.delete({ where: { id: categoryId } });
+    return true;
+  }
 }

@@ -225,6 +225,11 @@ type Mutation {
   archiveDetail(id: String!): Detail!
   archiveSuplier(id: String!): Suplier!
   archiveVehicle(id: String!): Vehicle!
+  deleteCategory(id: ID!): Boolean!
+  deleteClient(id: String!): Boolean!
+  deleteDetail(id: String!): Boolean!
+  deleteSuplier(id: String!): Boolean!
+  deleteVehicle(id: String!): Boolean!
   createCategory(input: CreateCategoryInput!): Category!
   createClient(input: CreateClientInput!): Client!
   createClientWithVehicles(input: CreateClientWithVehiclesInput!): Client!

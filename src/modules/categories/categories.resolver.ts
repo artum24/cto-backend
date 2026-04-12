@@ -92,4 +92,23 @@ export class CategoriesResolver {
 
     return this.categoriesService.archive(BigInt(id), BigInt(storage.id));
   }
+
+  @Mutation(() => Boolean, { name: 'deleteCategory' })
+  async deleteCategory(
+    @CurrentUser() user: AuthContextUser,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    if (!user.user.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+
+    const storage = await this.storageService.findByCompanyId(
+      BigInt(user.user.company_id),
+    );
+    if (!storage) {
+      throw new Error('Storage not found for this company.');
+    }
+
+    return this.categoriesService.remove(BigInt(id), BigInt(storage.id));
+  }
 }

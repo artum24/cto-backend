@@ -99,4 +99,15 @@ export class VehicleResolver {
     }
     return this.vehicleService.archive(BigInt(current.user.company_id), id);
   }
+
+  @Mutation(() => Boolean, { name: 'deleteVehicle' })
+  async deleteVehicle(
+    @CurrentUser() current: AuthContextUser,
+    @Args('id') id: string,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.vehicleService.remove(BigInt(current.user.company_id), id);
+  }
 }

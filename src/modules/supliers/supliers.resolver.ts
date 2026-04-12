@@ -77,4 +77,21 @@ export class SupliersResolver {
     }
     return this.supliersService.archive(BigInt(storage.id), id);
   }
+
+  @Mutation(() => Boolean, { name: 'deleteSuplier' })
+  async deleteSuplier(
+    @CurrentUser() user: AuthContextUser,
+    @Args('id') id: string,
+  ) {
+    if (!user.user.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    const storage = await this.storageService.findByCompanyId(
+      BigInt(user.user.company_id),
+    );
+    if (!storage) {
+      throw new Error('Storage not found for this company.');
+    }
+    return this.supliersService.remove(BigInt(storage.id), id);
+  }
 }

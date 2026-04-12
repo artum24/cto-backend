@@ -178,4 +178,24 @@ export class ClientService {
     });
     return bigintToString(client);
   }
+
+  async remove(companyId: bigint, id: string): Promise<boolean> {
+    const idBigInt = BigInt(id);
+    const existing = await this.prisma.clients.findFirst({
+      where: { id: idBigInt, company_id: companyId },
+    });
+    if (!existing) {
+      throw new Error('Client not found');
+    }
+    const vehiclesCount = await this.prisma.vehicles.count({
+      where: { client_id: idBigInt },
+    });
+    if (vehiclesCount > 0) {
+      throw new Error(
+        `Cannot delete client: ${vehiclesCount} vehicle(s) are still linked. Remove or reassign them first.`,
+      );
+    }
+    await this.prisma.clients.delete({ where: { id: idBigInt } });
+    return true;
+  }
 }

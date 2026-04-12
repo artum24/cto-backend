@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { StorageModule } from '@/modules/storage/storage.module';
-import { DetailsResolver } from './details.resolver';
+import { DetailsResolver, DetailHistoryResolver } from './details.resolver';
 import { DetailsService } from './details.service';
 
 @Module({
   imports: [StorageModule],
-  providers: [DetailsResolver, DetailsService],
+  providers: [DetailsResolver, DetailHistoryResolver, DetailsService],
 })
 export class DetailsModule {}
