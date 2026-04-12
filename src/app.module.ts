@@ -36,9 +36,9 @@ import { InvoiceModule } from '@/modules/invoice/invoice.module';
 const isProduction = process.env.NODE_ENV === 'production';
 /** Vercel / production: no writable `src/schema.gql` — keep schema in memory. */
 const graphQLSchemaInMemory = isProduction || process.env.VERCEL === '1';
-/** Embedded Apollo Sandbox (schema + query UI). Off in prod unless ENABLE_APOLLO_SANDBOX=true. */
+/** Embedded Apollo Sandbox (schema + query UI). Dev: always on. Prod: on unless ENABLE_APOLLO_SANDBOX=false. */
 const enableApolloSandbox =
-  !isProduction || process.env.ENABLE_APOLLO_SANDBOX === 'true';
+  !isProduction || process.env.ENABLE_APOLLO_SANDBOX !== 'false';
 /** Apollo 4 turns introspection off in production unless explicitly true. Sandbox needs it on. */
 const graphQLIntrospection = enableApolloSandbox
   ? true

@@ -4,7 +4,9 @@ import type { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const apolloSandboxEnabled = process.env.ENABLE_APOLLO_SANDBOX === 'true';
+/** Must match app.module GraphQL landing page (Helmet CSP blocks Apollo CDN otherwise). */
+const apolloSandboxEnabled =
+  !isProduction || process.env.ENABLE_APOLLO_SANDBOX !== 'false';
 
 function contentSecurityPolicy():
   | false
