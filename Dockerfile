@@ -20,7 +20,8 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-RUN npx prisma generate
+# Copy pre-generated Prisma client (correct linux-musl-openssl-3.0.x binary from builder)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 3000
 
