@@ -30,6 +30,7 @@ import { TasksModule } from '@/modules/tasks/tasks.module';
 import { VehicleHistoryModule } from '@/modules/vehicle-history/vehicle-history.module';
 import { UploadModule } from '@/modules/upload/upload.module';
 import { ReportModule } from '@/modules/report/report.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { InvoiceModule } from '@/modules/invoice/invoice.module';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -46,6 +47,7 @@ const graphQLIntrospection = enableApolloSandbox
 @Module({
   imports: [
     HttpModule,
+    EventEmitterModule.forRoot(),
 
     // Rate limiting: 200 requests per 60 seconds per IP
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 200 }]),
