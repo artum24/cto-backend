@@ -138,16 +138,16 @@ export class VehicleService {
   }
 
   async create(companyId: bigint, input: CreateVehicleInput) {
-    const clientId = BigInt(input.client_id);
+    const clientId = BigInt(input.clientId);
     const client = await this.prisma.clients.findFirst({
       where: { id: clientId, company_id: companyId },
     });
     if (!client) {
       throw new Error('Client not found or does not belong to your company.');
     }
-    if (input.vehicle_number != null && input.vehicle_number !== '') {
+    if (input.vehicleNumber != null && input.vehicleNumber !== '') {
       const existing = await this.prisma.vehicles.findFirst({
-        where: { vehicle_number: input.vehicle_number },
+        where: { vehicle_number: input.vehicleNumber },
       });
       if (existing) {
         throw new Error(

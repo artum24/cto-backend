@@ -36,27 +36,27 @@ export class UpdateDetailInput {
   @IsOptional()
   @IsInt()
   @Min(0)
-  minimum_count?: number | null;
+  minimumCount?: number | null;
 
   @Field(() => Number, { nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  sell_price?: number | null;
+  sellPrice?: number | null;
 
   @Field(() => Number, { nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  buy_price?: number | null;
+  buyPrice?: number | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
-  category_id?: string | null;
+  categoryId?: string | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
-  suplier_id?: string | null;
+  suplierId?: string | null;
 }

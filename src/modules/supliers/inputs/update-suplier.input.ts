@@ -29,7 +29,7 @@ export class UpdateSuplierInput {
   @IsOptional()
   @IsUrl()
   @MaxLength(500)
-  site_url?: string | null;
+  siteUrl?: string | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -41,5 +41,5 @@ export class UpdateSuplierInput {
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  suplier_name?: string | null;
+  suplierName?: string | null;
 }

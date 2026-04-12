@@ -12,62 +12,62 @@ import {
 export class CreateVehicleInput {
   @Field(() => String, { description: 'Client ID (owner of the vehicle)' })
   @IsString()
-  client_id: string;
+  clientId: string;
 
   @Field(() => Int)
   @IsInt()
   @Min(1900)
   @Max(2100)
-  vehicle_year: number;
+  vehicleYear: number;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
   @Min(0)
-  vehicle_distance?: number | null;
+  vehicleDistance?: number | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   @Length(1, 50)
-  vehicle_number?: string | null;
+  vehicleNumber?: string | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   @Length(1, 50)
-  vehicle_vin_code?: string | null;
+  vehicleVinCode?: string | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   @Length(1, 50)
-  vehicle_transmission?: string | null;
+  vehicleTransmission?: string | null;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  vehicle_type?: number | null;
+  vehicleType?: number | null;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  vehicle_make_id?: number | null;
+  vehicleMakeId?: number | null;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  vehicle_model_id?: number | null;
+  vehicleModelId?: number | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  vehicle_make_name?: string | null;
+  vehicleMakeName?: string | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  vehicle_model_name?: string | null;
+  vehicleModelName?: string | null;
 }

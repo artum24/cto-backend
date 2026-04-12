@@ -1,12 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { CreateVehicleInput } from '@/modules/vehicle/inputs/create-vehicle.input';
 
-export type VehicleCreateFields = Omit<CreateVehicleInput, 'client_id'>;
+export type VehicleCreateFields = Omit<CreateVehicleInput, 'clientId'>;
 
 export function vehicleInputWithoutClientId(
   input: CreateVehicleInput,
 ): VehicleCreateFields {
-  const { client_id: _c, ...body } = input;
+  const { clientId: _c, ...body } = input;
   return body;
 }
 
@@ -17,16 +17,16 @@ export function buildVehicleUncheckedCreate(
 ): Prisma.vehiclesUncheckedCreateInput {
   return {
     client_id: clientId,
-    vehicle_year: input.vehicle_year,
-    vehicle_distance: input.vehicle_distance ?? null,
-    vehicle_number: input.vehicle_number ?? null,
-    vehicle_vin_code: input.vehicle_vin_code ?? null,
-    vehicle_transmission: input.vehicle_transmission ?? null,
-    vehicle_type: input.vehicle_type ?? null,
-    vehicle_make_id: input.vehicle_make_id ?? null,
-    vehicle_model_id: input.vehicle_model_id ?? null,
-    vehicle_make_name: input.vehicle_make_name ?? null,
-    vehicle_model_name: input.vehicle_model_name ?? null,
+    vehicle_year: input.vehicleYear,
+    vehicle_distance: input.vehicleDistance ?? null,
+    vehicle_number: input.vehicleNumber ?? null,
+    vehicle_vin_code: input.vehicleVinCode ?? null,
+    vehicle_transmission: input.vehicleTransmission ?? null,
+    vehicle_type: input.vehicleType ?? null,
+    vehicle_make_id: input.vehicleMakeId ?? null,
+    vehicle_model_id: input.vehicleModelId ?? null,
+    vehicle_make_name: input.vehicleMakeName ?? null,
+    vehicle_model_name: input.vehicleModelName ?? null,
     created_at: now,
     updated_at: now,
   };

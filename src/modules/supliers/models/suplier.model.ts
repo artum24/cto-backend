@@ -32,6 +32,6 @@ export class Suplier {
   @Field(() => Date, { name: 'updatedAt' })
   updated_at!: Date;
 
-  @Field(() => Boolean)
-  archived!: boolean;
+  @Field(() => Boolean, { nullable: true })
+  archived?: boolean | null;
 }

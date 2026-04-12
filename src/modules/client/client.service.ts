@@ -83,7 +83,7 @@ export class ClientService {
     }
 
     const plateNumbers = input.vehicles
-      .map((v) => v.vehicle_number)
+      .map((v) => v.vehicleNumber)
       .filter((n): n is string => n != null && n !== '');
     if (new Set(plateNumbers).size !== plateNumbers.length) {
       throw new Error(
@@ -104,9 +104,9 @@ export class ClientService {
       });
 
       for (const v of input.vehicles) {
-        if (v.vehicle_number != null && v.vehicle_number !== '') {
+        if (v.vehicleNumber != null && v.vehicleNumber !== '') {
           const existing = await tx.vehicles.findFirst({
-            where: { vehicle_number: v.vehicle_number },
+            where: { vehicle_number: v.vehicleNumber },
           });
           if (existing) {
             throw new Error(

@@ -11,7 +11,7 @@ export class CompanyInput {
 
   @Field(() => CompanyType)
   @IsEnum(CompanyType)
-  company_type: CompanyType;
+  companyType: CompanyType;
 
   @Field()
   @IsString()
@@ -21,7 +21,7 @@ export class CompanyInput {
   @Field()
   @IsString()
   @IsNotEmpty()
-  city_ref: string;
+  cityRef: string;
 
   @Field()
   @IsString()
@@ -31,10 +31,10 @@ export class CompanyInput {
   @Field()
   @IsString()
   @IsNotEmpty()
-  address_ref: string;
+  addressRef: string;
 
   @Field()
   @IsString()
   @IsNotEmpty()
-  house_number: string;
+  houseNumber: string;
 }

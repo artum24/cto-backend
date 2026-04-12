@@ -102,8 +102,13 @@ export class CompanyService {
     };
 
     const companyData = {
-      ...companyInput,
-      company_type: companyTypeMap[companyInput.company_type],
+      title: companyInput.title,
+      company_type: companyTypeMap[companyInput.companyType],
+      city: companyInput.city,
+      city_ref: companyInput.cityRef,
+      address: companyInput.address,
+      address_ref: companyInput.addressRef,
+      house_number: companyInput.houseNumber,
     };
 
     try {

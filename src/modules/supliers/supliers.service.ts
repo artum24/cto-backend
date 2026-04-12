@@ -9,11 +9,11 @@ import { UpdateSuplierInput } from './inputs/update-suplier.input';
 export class SupliersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(storageId: bigint, includeArchived = false) {
+  async findAll(storageId: bigint, archived?: boolean | null) {
     const list = await this.prisma.supliers.findMany({
       where: {
         storage_id: storageId,
-        ...(includeArchived ? {} : { archived: false }),
+        archived: archived === true,
       },
     });
     return list.map(bigintToString);
@@ -49,10 +49,10 @@ export class SupliersService {
     if (input.name !== undefined) data.name = input.name ?? null;
     if (input.phone !== undefined) data.phone = input.phone ?? null;
     if (input.email !== undefined) data.email = input.email ?? null;
-    if (input.site_url !== undefined) data.site_url = input.site_url ?? null;
+    if (input.siteUrl !== undefined) data.site_url = input.siteUrl ?? null;
     if (input.comment !== undefined) data.comment = input.comment ?? null;
-    if (input.suplier_name !== undefined)
-      data.suplier_name = input.suplier_name ?? null;
+    if (input.suplierName !== undefined)
+      data.suplier_name = input.suplierName ?? null;
 
     const row = await this.prisma.supliers.update({
       where: { id },

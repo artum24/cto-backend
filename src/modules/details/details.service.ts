@@ -84,14 +84,14 @@ export class DetailsService {
 
   async create(storageId: bigint, input: CreateDetailInput) {
     await this.ensureStorageAccess(storageId);
-    if (input.category_id != null && input.category_id !== '') {
+    if (input.categoryId != null && input.categoryId !== '') {
       await this.ensureCategoryInStorage(
-        BigInt(input.category_id),
+        BigInt(input.categoryId),
         storageId,
       );
     }
-    if (input.suplier_id != null && input.suplier_id !== '') {
-      await this.ensureSuplierInStorage(BigInt(input.suplier_id), storageId);
+    if (input.suplierId != null && input.suplierId !== '') {
+      await this.ensureSuplierInStorage(BigInt(input.suplierId), storageId);
     }
     if (input.article != null && input.article.trim() !== '') {
       const existing = await this.prisma.details.findFirst({
@@ -108,16 +108,16 @@ export class DetailsService {
         name: input.name ?? null,
         article: input.article?.trim() || null,
         count: input.count ?? null,
-        minimum_count: input.minimum_count ?? null,
-        sell_price: input.sell_price != null ? input.sell_price : null,
-        buy_price: input.buy_price != null ? input.buy_price : null,
+        minimum_count: input.minimumCount ?? null,
+        sell_price: input.sellPrice != null ? input.sellPrice : null,
+        buy_price: input.buyPrice != null ? input.buyPrice : null,
         category_id:
-          input.category_id != null && input.category_id !== ''
-            ? BigInt(input.category_id)
+          input.categoryId != null && input.categoryId !== ''
+            ? BigInt(input.categoryId)
             : null,
         suplier_id:
-          input.suplier_id != null && input.suplier_id !== ''
-            ? BigInt(input.suplier_id)
+          input.suplierId != null && input.suplierId !== ''
+            ? BigInt(input.suplierId)
             : null,
         created_at: now,
         updated_at: now,
@@ -133,18 +133,18 @@ export class DetailsService {
       where: { id, storage_id: storageId },
     });
     if (!existing) throw new Error('Detail not found in this storage.');
-    if (input.category_id !== undefined) {
-      if (input.category_id != null && input.category_id !== '') {
+    if (input.categoryId !== undefined) {
+      if (input.categoryId != null && input.categoryId !== '') {
         await this.ensureCategoryInStorage(
-          BigInt(input.category_id),
+          BigInt(input.categoryId),
           storageId,
         );
       }
     }
-    if (input.suplier_id !== undefined) {
-      if (input.suplier_id != null && input.suplier_id !== '') {
+    if (input.suplierId !== undefined) {
+      if (input.suplierId != null && input.suplierId !== '') {
         await this.ensureSuplierInStorage(
-          BigInt(input.suplier_id),
+          BigInt(input.suplierId),
           storageId,
         );
       }
@@ -166,22 +166,22 @@ export class DetailsService {
     if (input.article !== undefined)
       data.article = input.article?.trim() || null;
     if (input.count !== undefined) data.count = input.count ?? null;
-    if (input.minimum_count !== undefined)
-      data.minimum_count = input.minimum_count ?? null;
-    if (input.sell_price !== undefined)
-      data.sell_price = input.sell_price != null ? input.sell_price : null;
-    if (input.buy_price !== undefined)
-      data.buy_price = input.buy_price != null ? input.buy_price : null;
-    if (input.category_id !== undefined) {
+    if (input.minimumCount !== undefined)
+      data.minimum_count = input.minimumCount ?? null;
+    if (input.sellPrice !== undefined)
+      data.sell_price = input.sellPrice != null ? input.sellPrice : null;
+    if (input.buyPrice !== undefined)
+      data.buy_price = input.buyPrice != null ? input.buyPrice : null;
+    if (input.categoryId !== undefined) {
       data.categories =
-        input.category_id != null && input.category_id !== ''
-          ? { connect: { id: BigInt(input.category_id) } }
+        input.categoryId != null && input.categoryId !== ''
+          ? { connect: { id: BigInt(input.categoryId) } }
           : { disconnect: true };
     }
-    if (input.suplier_id !== undefined)
+    if (input.suplierId !== undefined)
       data.supliers =
-        input.suplier_id != null && input.suplier_id !== ''
-          ? { connect: { id: BigInt(input.suplier_id) } }
+        input.suplierId != null && input.suplierId !== ''
+          ? { connect: { id: BigInt(input.suplierId) } }
           : { disconnect: true };
 
     const row = await this.prisma.details.update({

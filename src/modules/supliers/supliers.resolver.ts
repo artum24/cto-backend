@@ -18,13 +18,17 @@ export class SupliersResolver {
   ) {}
 
   @Query(() => [Suplier], { name: 'supliers' })
-  async supliers(@CurrentUser() user: AuthContextUser) {
+  async supliers(
+    @CurrentUser() user: AuthContextUser,
+    @Args('archived', { nullable: true, type: () => Boolean })
+    archived?: boolean | null,
+  ) {
     if (!user.user.company_id) return [];
     const storage = await this.storageService.findByCompanyId(
       BigInt(user.user.company_id),
     );
     if (!storage) return [];
-    return this.supliersService.findAll(BigInt(storage.id));
+    return this.supliersService.findAll(BigInt(storage.id), archived);
   }
 
   @Mutation(() => Suplier, { name: 'createSuplier' })

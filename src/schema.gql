@@ -41,11 +41,11 @@ type Company {
 
 input CompanyInput {
   address: String!
-  address_ref: String!
+  addressRef: String!
   city: String!
-  city_ref: String!
-  company_type: CompanyType!
-  house_number: String!
+  cityRef: String!
+  companyType: CompanyType!
+  houseNumber: String!
   title: String!
 }
 
@@ -79,13 +79,13 @@ input CreateClientWithVehiclesInput {
 
 input CreateDetailInput {
   article: String
-  buy_price: Float
-  category_id: String
+  buyPrice: Float
+  categoryId: String
   count: Int
-  minimum_count: Int
+  minimumCount: Int
   name: String
-  sell_price: Float
-  suplier_id: String
+  sellPrice: Float
+  suplierId: String
 }
 
 input CreateServiceInput {
@@ -116,31 +116,31 @@ input CreateVehicleHistoryInput {
 }
 
 input CreateVehicleForClientInput {
-  vehicle_distance: Int
-  vehicle_make_id: Int
-  vehicle_make_name: String
-  vehicle_model_id: Int
-  vehicle_model_name: String
-  vehicle_number: String
-  vehicle_transmission: String
-  vehicle_type: Int
-  vehicle_vin_code: String
-  vehicle_year: Int!
+  vehicleDistance: Int
+  vehicleMakeId: Int
+  vehicleMakeName: String
+  vehicleModelId: Int
+  vehicleModelName: String
+  vehicleNumber: String
+  vehicleTransmission: String
+  vehicleType: Int
+  vehicleVinCode: String
+  vehicleYear: Int!
 }
 
 input CreateVehicleInput {
   """Client ID (owner of the vehicle)"""
-  client_id: String!
-  vehicle_distance: Int
-  vehicle_make_id: Int
-  vehicle_make_name: String
-  vehicle_model_id: Int
-  vehicle_model_name: String
-  vehicle_number: String
-  vehicle_transmission: String
-  vehicle_type: Int
-  vehicle_vin_code: String
-  vehicle_year: Int!
+  clientId: String!
+  vehicleDistance: Int
+  vehicleMakeId: Int
+  vehicleMakeName: String
+  vehicleModelId: Int
+  vehicleModelName: String
+  vehicleNumber: String
+  vehicleTransmission: String
+  vehicleType: Int
+  vehicleVinCode: String
+  vehicleYear: Int!
 }
 
 """
@@ -318,7 +318,7 @@ type Query {
   service(id: ID!): Service!
   services: [Service!]!
   storage: Storage
-  supliers: [Suplier!]!
+  supliers(archived: Boolean): [Suplier!]!
   task(id: ID!): Task!
   tasks: [Task!]!
   userInvitations: [Invitation!]!
@@ -363,7 +363,7 @@ type Storage {
 }
 
 type Suplier {
-  archived: Boolean!
+  archived: Boolean
   comment: String
   createdAt: DateTime!
   email: String
@@ -420,14 +420,14 @@ input UpdateCompanyInput {
 
 input UpdateDetailInput {
   article: String
-  buy_price: Float
-  category_id: String
+  buyPrice: Float
+  categoryId: String
   count: Int
   id: String!
-  minimum_count: Int
+  minimumCount: Int
   name: String
-  sell_price: Float
-  suplier_id: String
+  sellPrice: Float
+  suplierId: String
 }
 
 input UpdateServiceInput {
@@ -442,8 +442,8 @@ input UpdateSuplierInput {
   id: ID!
   name: String
   phone: String
-  site_url: String
-  suplier_name: String
+  siteUrl: String
+  suplierName: String
 }
 
 input UpdateTaskInput {
