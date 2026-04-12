@@ -16,4 +16,7 @@ export class Category {
 
   @Field(() => Int, { nullable: true })
   count?: number | null;
+
+  @Field(() => Date, { name: 'createdAt' })
+  created_at!: Date;
 }

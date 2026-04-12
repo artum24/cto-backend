@@ -19,10 +19,10 @@ export class Detail {
   @Field(() => Int, { nullable: true, name: 'minimumCount' })
   minimum_count?: number | null;
 
-  @Field(() => Float, { nullable: true })
+  @Field(() => Float, { nullable: true, name: 'sellPrice' })
   sell_price?: number | null;
 
-  @Field(() => Float, { nullable: true })
+  @Field(() => Float, { nullable: true, name: 'buyPrice' })
   buy_price?: number | null;
 
   @Field(() => ID, { nullable: true })

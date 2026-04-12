@@ -5,6 +5,7 @@
 type Category {
   archived: Boolean!
   count: Int
+  createdAt: DateTime!
   id: ID!
   name: String!
   storage_id: ID!
@@ -150,7 +151,7 @@ scalar DateTime
 type Detail {
   archived: Boolean!
   article: String
-  buy_price: Float
+  buyPrice: Float
   category: Category
   category_id: ID
   count: Int
@@ -158,7 +159,7 @@ type Detail {
   id: ID!
   minimumCount: Int
   name: String
-  sell_price: Float
+  sellPrice: Float
   storageId: ID!
   suplier: Suplier
   suplier_id: ID
@@ -343,13 +344,15 @@ type Storage {
 type Suplier {
   archived: Boolean!
   comment: String
+  createdAt: DateTime!
   email: String
   id: ID!
   name: String
   phone: String
   siteUrl: String
-  storage_id: String!
+  storageId: ID!
   suplierName: String
+  updatedAt: DateTime!
 }
 
 type Task {

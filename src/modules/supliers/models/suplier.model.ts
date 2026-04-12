@@ -23,8 +23,14 @@ export class Suplier {
   @Field(() => String, { nullable: true, name: 'suplierName' })
   suplier_name?: string | null;
 
-  @Field(() => String)
+  @Field(() => ID, { name: 'storageId' })
   storage_id!: string;
+
+  @Field(() => Date, { name: 'createdAt' })
+  created_at!: Date;
+
+  @Field(() => Date, { name: 'updatedAt' })
+  updated_at!: Date;
 
   @Field(() => Boolean)
   archived!: boolean;
