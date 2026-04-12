@@ -4,6 +4,7 @@
 
 type Category {
   archived: Boolean!
+  count: Int
   id: ID!
   name: String!
   storage_id: ID!
@@ -256,7 +257,7 @@ enum PhoneValidationValues {
 }
 
 type Query {
-  categories: [Category!]!
+  categories(archived: Boolean): [Category!]!
   client(id: Int!): Client!
   clients: [Client!]!
   companyMembers: [CompanyMember!]!

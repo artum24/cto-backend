@@ -69,6 +69,7 @@ model categories {
   updated_at  DateTime  @db.Timestamp(6)
   archived    Boolean   @default(false)
   archived_at DateTime? @db.Timestamp(6)
+  count       Int?
   storages    storages  @relation(fields: [storage_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_8c8584bd5f")
   details     details[]
 

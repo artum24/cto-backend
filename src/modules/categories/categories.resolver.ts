@@ -18,7 +18,11 @@ export class CategoriesResolver {
   ) {}
 
   @Query(() => [Category], { name: 'categories' })
-  async getCategories(@CurrentUser() user: AuthContextUser) {
+  async getCategories(
+    @CurrentUser() user: AuthContextUser,
+    @Args('archived', { type: () => Boolean, nullable: true })
+    archived?: boolean | null,
+  ) {
     if (!user.user.company_id) return [];
 
     const storage = await this.storageService.findByCompanyId(
@@ -26,7 +30,10 @@ export class CategoriesResolver {
     );
     if (!storage) return [];
 
-    return this.categoriesService.findAll(BigInt(storage.id));
+    return this.categoriesService.findAll(
+      BigInt(storage.id),
+      typeof archived === 'boolean' ? archived : undefined,
+    );
   }
 
   @Mutation(() => Category, { name: 'createCategory' })

@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class Category {
@@ -13,4 +13,7 @@ export class Category {
 
   @Field(() => Boolean)
   archived!: boolean;
+
+  @Field(() => Int, { nullable: true })
+  count?: number | null;
 }

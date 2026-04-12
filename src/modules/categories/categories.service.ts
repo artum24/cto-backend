@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CreateCategoryInput } from './inputs/create-category.input';
@@ -8,10 +9,12 @@ import { UpdateCategoryInput } from './inputs/update-category.input';
 export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(storageId: bigint) {
-    const categories = await this.prisma.categories.findMany({
-      where: { storage_id: storageId },
-    });
+  async findAll(storageId: bigint, archived?: boolean) {
+    const where: Prisma.categoriesWhereInput = { storage_id: storageId };
+    if (typeof archived === 'boolean') {
+      where.archived = archived;
+    }
+    const categories = await this.prisma.categories.findMany({ where });
     return categories.map(bigintToString);
   }
 
