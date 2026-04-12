@@ -13,7 +13,9 @@ import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
 import { OrderByInput } from '@/modules/vehicle/inputs/order-by.input';
 import { CreateVehicleInput } from '@/modules/vehicle/inputs/create-vehicle.input';
 import { UpdateVehicleInput } from '@/modules/vehicle/inputs/update-vehicle.input';
+import { VehicleUpdateInput } from '@/modules/vehicle/inputs/vehicle-update.input';
 import { FilteredVehiclesResult } from '@/modules/vehicle/models/filtered-vehicles.model';
+import { VehicleUpdateOutput } from '@/modules/vehicle/models/vehicle-update.output';
 
 @Resolver(() => Vehicle)
 export class VehicleResolver {
@@ -108,6 +110,20 @@ export class VehicleResolver {
       throw new Error('User is not associated with a company.');
     }
     return this.vehicleService.update(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => VehicleUpdateOutput, { name: 'vehicleUpdate' })
+  async vehicleUpdate(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: VehicleUpdateInput,
+  ): Promise<VehicleUpdateOutput> {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    const result = await this.vehicleService.update(BigInt(current.user.company_id), input);
+    const { client, ...vehicleFields } = result as any;
+    return { vehicle: vehicleFields, client };
   }
 
   @UseGuards(SupabaseAuthGuard)
