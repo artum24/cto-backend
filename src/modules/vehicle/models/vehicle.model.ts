@@ -18,6 +18,9 @@ export class Vehicle {
   @Field(() => String, { nullable: true, name: 'vehicleVinCode' })
   vehicle_vin_code!: string | null;
 
+  @Field(() => Date, { name: 'createdAt' })
+  created_at!: Date;
+
   @Field(() => Date, { name: 'updatedAt' })
   updated_at!: Date;
 

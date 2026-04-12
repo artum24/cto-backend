@@ -12,11 +12,11 @@ export class Client {
   @Field(() => String, { nullable: true })
   phone?: string | null;
 
-  @Field(() => String)
-  created_at!: string;
+  @Field(() => Date, { name: 'createdAt' })
+  created_at!: Date;
 
-  @Field(() => String)
-  updated_at!: string;
+  @Field(() => Date, { name: 'updatedAt' })
+  updated_at!: Date;
 
   @Field(() => Boolean)
   archived!: boolean;

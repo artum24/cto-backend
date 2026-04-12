@@ -4,6 +4,10 @@ import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
 import { CreateVehicleInput } from '@/modules/vehicle/inputs/create-vehicle.input';
 import { UpdateVehicleInput } from '@/modules/vehicle/inputs/update-vehicle.input';
+import {
+  buildVehicleUncheckedCreate,
+  vehicleInputWithoutClientId,
+} from '@/modules/vehicle/vehicle-create-data';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -122,21 +126,11 @@ export class VehicleService {
     }
     const now = new Date();
     const created = await this.prisma.vehicles.create({
-      data: {
-        client_id: clientId,
-        vehicle_year: input.vehicle_year,
-        vehicle_distance: input.vehicle_distance ?? null,
-        vehicle_number: input.vehicle_number ?? null,
-        vehicle_vin_code: input.vehicle_vin_code ?? null,
-        vehicle_transmission: input.vehicle_transmission ?? null,
-        vehicle_type: input.vehicle_type ?? null,
-        vehicle_make_id: input.vehicle_make_id ?? null,
-        vehicle_model_id: input.vehicle_model_id ?? null,
-        vehicle_make_name: input.vehicle_make_name ?? null,
-        vehicle_model_name: input.vehicle_model_name ?? null,
-        created_at: now,
-        updated_at: now,
-      },
+      data: buildVehicleUncheckedCreate(
+        clientId,
+        vehicleInputWithoutClientId(input),
+        now,
+      ),
     });
     const withClient = await this.prisma.vehicles.findUnique({
       where: { id: created.id },

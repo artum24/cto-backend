@@ -13,11 +13,11 @@ type Category {
 type Client {
   archived: Boolean!
   company_id: ID!
-  created_at: String!
+  createdAt: DateTime!
   id: ID!
   name: String
   phone: String
-  updated_at: String!
+  updatedAt: DateTime!
   vehicles: [Vehicle]
 }
 
@@ -27,13 +27,15 @@ input ClientOrderInput {
 
 type Company {
   address: String
-  address_ref: String
+  addressRef: String
   city: String
-  city_ref: String
-  company_type: Int
-  house_number: String
+  cityRef: String
+  companyType: Int
+  createdAt: DateTime!
+  houseNumber: String
   id: ID!
   title: String
+  updatedAt: DateTime!
 }
 
 input CompanyInput {
@@ -67,6 +69,11 @@ input CreateCategoryInput {
 input CreateClientInput {
   name: String
   phone: String!
+}
+
+input CreateClientWithVehiclesInput {
+  client: CreateClientInput!
+  vehicles: [CreateVehicleForClientInput!]!
 }
 
 input CreateDetailInput {
@@ -107,6 +114,19 @@ input CreateVehicleHistoryInput {
   task_id: ID!
 }
 
+input CreateVehicleForClientInput {
+  vehicle_distance: Int
+  vehicle_make_id: Int
+  vehicle_make_name: String
+  vehicle_model_id: Int
+  vehicle_model_name: String
+  vehicle_number: String
+  vehicle_transmission: String
+  vehicle_type: Int
+  vehicle_vin_code: String
+  vehicle_year: Int!
+}
+
 input CreateVehicleInput {
   """Client ID (owner of the vehicle)"""
   client_id: String!
@@ -134,13 +154,15 @@ type Detail {
   category: Category
   category_id: ID
   count: Int
+  createdAt: DateTime!
   id: ID!
-  minimum_count: Int
+  minimumCount: Int
   name: String
   sell_price: Float
-  storage_id: ID!
+  storageId: ID!
   suplier: Suplier
   suplier_id: ID
+  updatedAt: DateTime!
 }
 
 type DetailHistory {
@@ -204,6 +226,7 @@ type Mutation {
   archiveVehicle(id: String!): Vehicle!
   createCategory(input: CreateCategoryInput!): Category!
   createClient(input: CreateClientInput!): Client!
+  createClientWithVehicles(input: CreateClientWithVehiclesInput!): Client!
   createCompany(companyInput: CompanyInput!): Company!
   createDetail(input: CreateDetailInput!): Detail!
   createSuplier(input: CreateSuplierInput!): Suplier!
@@ -324,9 +347,9 @@ type Suplier {
   id: ID!
   name: String
   phone: String
-  site_url: String
+  siteUrl: String
   storage_id: String!
-  suplier_name: String
+  suplierName: String
 }
 
 type Task {
@@ -438,6 +461,7 @@ type User {
 
 type Vehicle {
   client: Client!
+  createdAt: DateTime!
   id: ID!
   updatedAt: DateTime!
   vehicleDistance: Int

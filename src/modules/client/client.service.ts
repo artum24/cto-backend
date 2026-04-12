@@ -3,7 +3,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
 import { CreateClientInput } from './inputs/create-client.input';
+import { CreateClientWithVehiclesInput } from './inputs/create-client-with-vehicles.input';
 import { UpdateClientInput } from './inputs/update-client.input';
+import { buildVehicleUncheckedCreate } from '@/modules/vehicle/vehicle-create-data';
+import type { VehicleCreateFields } from '@/modules/vehicle/vehicle-create-data';
 
 const normalizePhone = (phone: string) =>
   phone.replace(/[^0-9]/g, '').slice(-10);
@@ -68,6 +71,62 @@ export class ClientService {
       },
     });
     return bigintToString(client);
+  }
+
+  async createWithVehicles(companyId: bigint, input: CreateClientWithVehiclesInput) {
+    const phone = normalizePhone(input.client.phone);
+    const validation = await this.validatePhone(companyId, input.client.phone);
+    if (validation === PhoneValidationValues.INVALID) {
+      throw new Error(
+        'A client with this phone number already exists in your company.',
+      );
+    }
+
+    const plateNumbers = input.vehicles
+      .map((v) => v.vehicle_number)
+      .filter((n): n is string => n != null && n !== '');
+    if (new Set(plateNumbers).size !== plateNumbers.length) {
+      throw new Error(
+        'Duplicate vehicle registration numbers in the same request.',
+      );
+    }
+
+    const clientRow = await this.prisma.$transaction(async (tx) => {
+      const now = new Date();
+      const client = await tx.clients.create({
+        data: {
+          company_id: companyId,
+          name: input.client.name ?? null,
+          phone,
+          created_at: now,
+          updated_at: now,
+        },
+      });
+
+      for (const v of input.vehicles) {
+        if (v.vehicle_number != null && v.vehicle_number !== '') {
+          const existing = await tx.vehicles.findFirst({
+            where: { vehicle_number: v.vehicle_number },
+          });
+          if (existing) {
+            throw new Error(
+              'A vehicle with this registration number already exists.',
+            );
+          }
+        }
+        await tx.vehicles.create({
+          data: buildVehicleUncheckedCreate(
+            client.id,
+            v as VehicleCreateFields,
+            now,
+          ),
+        });
+      }
+
+      return client;
+    });
+
+    return bigintToString(clientRow);
   }
 
   async update(companyId: bigint, input: UpdateClientInput) {

@@ -19,6 +19,7 @@ import { ClientService } from './client.service';
 import { CurrentUser } from '@/auth/current-user.decorator';
 import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
 import { CreateClientInput } from './inputs/create-client.input';
+import { CreateClientWithVehiclesInput } from './inputs/create-client-with-vehicles.input';
 import { UpdateClientInput } from './inputs/update-client.input';
 
 @Resolver(() => Client)
@@ -60,6 +61,21 @@ export class ClientsResolver {
       throw new Error('User is not associated with a company.');
     }
     return this.clientsService.create(BigInt(current.user.company_id), input);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Mutation(() => Client, { name: 'createClientWithVehicles' })
+  async createClientWithVehicles(
+    @CurrentUser() current: AuthContextUser,
+    @Args('input') input: CreateClientWithVehiclesInput,
+  ) {
+    if (!current?.user?.company_id) {
+      throw new Error('User is not associated with a company.');
+    }
+    return this.clientsService.createWithVehicles(
+      BigInt(current.user.company_id),
+      input,
+    );
   }
 
   @UseGuards(SupabaseAuthGuard)

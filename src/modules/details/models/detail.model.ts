@@ -16,7 +16,7 @@ export class Detail {
   @Field(() => Int, { nullable: true })
   count?: number | null;
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int, { nullable: true, name: 'minimumCount' })
   minimum_count?: number | null;
 
   @Field(() => Float, { nullable: true })
@@ -31,8 +31,14 @@ export class Detail {
   @Field(() => ID, { nullable: true })
   suplier_id?: string | null;
 
-  @Field(() => ID)
+  @Field(() => ID, { name: 'storageId' })
   storage_id!: string;
+
+  @Field(() => Date, { name: 'createdAt' })
+  created_at!: Date;
+
+  @Field(() => Date, { name: 'updatedAt' })
+  updated_at!: Date;
 
   @Field(() => Boolean)
   archived!: boolean;

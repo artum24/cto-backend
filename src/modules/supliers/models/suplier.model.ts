@@ -14,13 +14,13 @@ export class Suplier {
   @Field(() => String, { nullable: true })
   email?: string | null;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String, { nullable: true, name: 'siteUrl' })
   site_url?: string | null;
 
   @Field(() => String, { nullable: true })
   comment?: string | null;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String, { nullable: true, name: 'suplierName' })
   suplier_name?: string | null;
 
   @Field(() => String)
