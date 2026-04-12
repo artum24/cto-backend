@@ -22,64 +22,95 @@ export class VehicleService {
     return vehicles.map(bigintToString);
   }
 
-  async findAndFilter(companyId: bigint, input: VehiclesInput) {
-    const { search, orderBy, page = 1, limit = 25 } = input;
-
+  private buildVehicleWhere(
+    companyId: bigint,
+    search?: string | null,
+  ): Prisma.vehiclesWhereInput {
     const where: Prisma.vehiclesWhereInput = {
       archived: false,
-      clients: {
-        company_id: companyId,
-      },
+      clients: { company_id: companyId },
     };
-
     if (search) {
       const phoneSearch = search.replace(/[^0-9]/g, '').slice(-10);
       where.OR = [
         { clients: { name: { contains: search, mode: 'insensitive' } } },
-        {
-          clients: {
-            phone: { contains: phoneSearch, mode: 'insensitive' },
-          },
-        },
+        { clients: { phone: { contains: phoneSearch, mode: 'insensitive' } } },
         { vehicle_make_name: { contains: search, mode: 'insensitive' } },
         { vehicle_model_name: { contains: search, mode: 'insensitive' } },
         { vehicle_number: { contains: search, mode: 'insensitive' } },
         { vehicle_vin_code: { contains: search, mode: 'insensitive' } },
       ];
     }
+    return where;
+  }
 
-    const orderByClause: Prisma.vehiclesOrderByWithRelationInput[] = [];
-    if (orderBy?.client?.name) {
-      orderByClause.push({ clients: { name: orderBy.client.name } });
-    }
-    if (orderBy?.vehicle?.vehicle_year) {
-      orderByClause.push({ vehicle_year: orderBy.vehicle.vehicle_year });
-    }
-    if (orderBy?.vehicle?.vehicle_distance) {
-      orderByClause.push({ vehicle_distance: orderBy.vehicle.vehicle_distance });
-    }
+  private buildOrderByClause(
+    orderBy?: VehiclesInput['orderBy'],
+  ): Prisma.vehiclesOrderByWithRelationInput[] {
+    const clause: Prisma.vehiclesOrderByWithRelationInput[] = [];
+    if (orderBy?.client?.name) clause.push({ clients: { name: orderBy.client.name } });
+    if (orderBy?.vehicle?.vehicle_year) clause.push({ vehicle_year: orderBy.vehicle.vehicle_year });
+    if (orderBy?.vehicle?.vehicle_distance) clause.push({ vehicle_distance: orderBy.vehicle.vehicle_distance });
+    if (clause.length === 0) clause.push({ created_at: 'desc' });
+    return clause;
+  }
 
-    if (orderByClause.length === 0) {
-      orderByClause.push({ created_at: 'desc' });
-    }
+  async findAndFilter(companyId: bigint, input: VehiclesInput) {
+    const { search, orderBy, page = 1, limit = 25 } = input;
+    const where = this.buildVehicleWhere(companyId, search);
+    const orderByClause = this.buildOrderByClause(orderBy);
 
     const vehicles = await this.prisma.vehicles.findMany({
       where,
-      include: {
-        clients: true,
-      },
+      include: { clients: true },
       orderBy: orderByClause,
       skip: (page - 1) * limit,
       take: limit,
     });
 
-    type VehicleWithClient = Prisma.vehiclesGetPayload<{
-      include: { clients: true };
-    }>;
+    type VehicleWithClient = Prisma.vehiclesGetPayload<{ include: { clients: true } }>;
     return vehicles.map((v: VehicleWithClient) => ({
       ...bigintToString(v),
       client: bigintToString(v.clients),
     }));
+  }
+
+  async filteredVehicles(
+    companyId: bigint,
+    opts: { page?: number | null; limit?: number | null; search?: string | null; orderBy?: VehiclesInput['orderBy'] },
+  ) {
+    const page = opts.page ?? 1;
+    const limit = opts.limit ?? 25;
+    const where = this.buildVehicleWhere(companyId, opts.search);
+    const orderByClause = this.buildOrderByClause(opts.orderBy);
+
+    type VehicleWithClient = Prisma.vehiclesGetPayload<{ include: { clients: true } }>;
+
+    const [vehicles, totalCount] = await Promise.all([
+      this.prisma.vehicles.findMany({
+        where,
+        include: { clients: true },
+        orderBy: orderByClause,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.vehicles.count({ where }),
+    ]);
+
+    const collection = vehicles.map((v: VehicleWithClient) => ({
+      ...bigintToString(v),
+      client: bigintToString(v.clients),
+    }));
+
+    return {
+      collection,
+      metadata: {
+        currentPage: page,
+        limitValue: limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    };
   }
 
   async findAllMakes() {

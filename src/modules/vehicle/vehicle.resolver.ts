@@ -10,8 +10,10 @@ import { CurrentUser } from '@/auth/current-user.decorator';
 import { VehicleMake } from '@/modules/vehicle/models/vehicleMakes.model';
 import { VehicleModel } from '@/modules/vehicle/models/vehicleModel.model';
 import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
+import { OrderByInput } from '@/modules/vehicle/inputs/order-by.input';
 import { CreateVehicleInput } from '@/modules/vehicle/inputs/create-vehicle.input';
 import { UpdateVehicleInput } from '@/modules/vehicle/inputs/update-vehicle.input';
+import { FilteredVehiclesResult } from '@/modules/vehicle/models/filtered-vehicles.model';
 
 @Resolver(() => Vehicle)
 export class VehicleResolver {
@@ -28,6 +30,26 @@ export class VehicleResolver {
       BigInt(current.user.company_id),
       input,
     );
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Query(() => FilteredVehiclesResult, { name: 'filteredVehicles' })
+  async filteredVehicles(
+    @CurrentUser() current: AuthContextUser,
+    @Args('page', { type: () => Int, nullable: true }) page?: number | null,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number | null,
+    @Args('search', { type: () => String, nullable: true }) search?: string | null,
+    @Args('orderBy', { type: () => OrderByInput, nullable: true }) orderBy?: OrderByInput | null,
+  ) {
+    if (!current?.user?.company_id) {
+      return { collection: [], metadata: { currentPage: 1, limitValue: 25, totalCount: 0, totalPages: 0 } };
+    }
+    return this.vehicleService.filteredVehicles(BigInt(current.user.company_id), {
+      page,
+      limit,
+      search,
+      orderBy: orderBy ?? undefined,
+    });
   }
 
   @UseGuards(SupabaseAuthGuard)
