@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 import Joi from 'joi';
 import { Request, Response } from 'express';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { HttpModule } from '@nestjs/axios';
 
 import { AppController } from './app.controller';
@@ -86,6 +87,10 @@ const graphQLIntrospection = enableApolloSandbox
       context: ({ req, res }: { req: Request; res: Response }) => ({
         req,
         res,
+        supabaseAuthUserById: new Map<
+          string,
+          Promise<SupabaseAuthUser | null>
+        >(),
       }),
     }),
 

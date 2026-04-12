@@ -7,36 +7,27 @@ export class DetailHistory {
   @Field(() => ID)
   id!: string;
 
-  @Field(() => DetailHistoryActionType)
-  action_type!: DetailHistoryActionType;
+  @Field(() => DetailHistoryActionType, { name: 'actionType', nullable: true })
+  action_type?: DetailHistoryActionType | null;
 
-  @Field(() => Int)
-  count_diff!: number;
+  @Field(() => Int, { name: 'countDiff', nullable: true })
+  count_diff?: number | null;
 
-  @Field(() => Int)
-  count_result!: number;
+  @Field(() => Int, { name: 'countResult', nullable: true })
+  count_result?: number | null;
 
   @Field(() => String, { nullable: true })
   comment?: string | null;
 
-  @Field(() => ID)
-  user_id!: string;
+  /** From DB; not in GraphQL schema (used by `DetailHistoryResolver.user`). */
+  user_id?: string;
 
   @Field(() => DetailHistoryUser, { nullable: true })
   user?: DetailHistoryUser | null;
 
-  @Field(() => ID)
-  detail_id!: string;
-
-  @Field(() => ID, { nullable: true })
+  @Field(() => ID, { name: 'taskId', nullable: true })
   task_id?: string | null;
 
-  @Field(() => ID)
-  storage_id!: string;
-
-  @Field()
+  @Field(() => Date, { name: 'createdAt' })
   created_at!: Date;
-
-  @Field()
-  updated_at!: Date;
 }

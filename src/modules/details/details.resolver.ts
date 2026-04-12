@@ -241,6 +241,6 @@ export class DetailHistoryResolver {
       select: { id: true, email: true },
     });
     if (!row) return null;
-    return { id: row.id, email: row.email ?? null, full_name: null };
+    return { id: row.id, email: row.email ?? null, fullName: null };
   }
 }

@@ -167,15 +167,26 @@ type Detail {
 }
 
 type DetailHistory {
-  action_type: Int
+  actionType: DetailHistoryActionType
   comment: String
-  count_diff: Int
-  count_result: Int
-  detail_id: ID!
+  countDiff: Int
+  countResult: Int
+  createdAt: DateTime!
   id: ID!
-  storage_id: ID!
-  task_id: ID
-  user_id: ID!
+  taskId: ID
+  user: DetailHistoryUser
+}
+
+type DetailHistoryUser {
+  email: String
+  fullName: String
+  id: ID!
+}
+
+enum DetailHistoryActionType {
+  ARRIVAL
+  CORRECTION
+  OUTLAY
 }
 
 input DetailsListInput {
@@ -193,11 +204,16 @@ type DetailsListResult {
 }
 
 type Invitation {
-  company_id: ID!
-  created_at: DateTime!
+  company: Company
+  companyId: ID!
+  createdAt: DateTime!
   email: String
+  fullName: String
   id: ID!
-  updated_at: DateTime!
+  phone: String
+  role: Int
+  status: Int
+  updatedAt: DateTime!
 }
 
 input InviteMemberInput {
@@ -461,10 +477,14 @@ input UpdateVehicleInput {
 
 type User {
   company: Company!
+  createdAt: DateTime!
   email: String
+  fullName: String
   id: ID!
-  role: Float
-  status: Float!
+  phone: String
+  role: Int
+  status: Int!
+  updatedAt: DateTime!
 }
 
 type Vehicle {

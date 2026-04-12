@@ -18,8 +18,11 @@ export class UserService {
     });
   }
 
-  findUserInvitations(email: string) {
-    return this.prisma.invitations.findMany({ where: { email } });
+  async findUserInvitations(email: string) {
+    const list = await this.prisma.invitations.findMany({
+      where: { email },
+    });
+    return list.map((row) => bigintToString(row));
   }
 
   async acceptInvitation(invitationId: string, currentUser: AuthContextUser) {

@@ -5,11 +5,8 @@ import { Invitation } from '@/modules/company/models/invitation.model';
 export const CompanyMemberUnion = createUnionType({
   name: 'CompanyMember',
   types: () => [Invitation, User] as const,
-  resolveType(value) {
-    if ('authUserId' in value || 'companyId' in value) return User;
-
-    if ('status' in value && !('authUserId' in value)) return Invitation;
-
-    return null;
+  resolveType(value: Record<string, unknown>) {
+    if ('auth_user_id' in value) return User;
+    return Invitation;
   },
 });

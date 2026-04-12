@@ -9,5 +9,5 @@ export class DetailHistoryUser {
   email?: string | null;
 
   @Field(() => String, { nullable: true })
-  full_name?: string | null;
+  fullName?: string | null;
 }
