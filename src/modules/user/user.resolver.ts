@@ -82,7 +82,7 @@ export class UserResolver {
   ): Promise<Company | null> {
     if (user.company != null) return user.company as Company;
     if (user.companies != null) {
-      return bigintToString(user.companies as Record<string, unknown>) as Company;
+      return bigintToString(user.companies as Record<string, unknown>) as unknown as Company;
     }
     if (user.company_id == null) return null;
     const row = await this.prisma.companies.findUnique({
