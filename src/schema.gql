@@ -483,7 +483,7 @@ type User {
   id: ID!
   phone: String
   role: Int
-  status: Int!
+  status: Int
   updatedAt: DateTime!
 }
 

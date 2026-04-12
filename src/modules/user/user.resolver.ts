@@ -3,6 +3,7 @@ import {
   Query,
   Mutation,
   Args,
+  ID,
   ResolveField,
   Parent,
   Context,
@@ -139,6 +140,15 @@ export class UserResolver {
   userInvitations(@CurrentUser() current?: AuthContextUser) {
     if (!current?.user?.email) return null;
     return this.userService.findUserInvitations(current.user.email);
+  }
+
+  @UseGuards(SupabaseAuthGuard)
+  @Query(() => User, { name: 'acceptInvite' })
+  async acceptInvite(
+    @CurrentUser() current: AuthContextUser,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    return this.userService.acceptInvitation(id, current);
   }
 
   @UseGuards(SupabaseAuthGuard)
