@@ -8,7 +8,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { VehicleType } from '@/modules/vehicle/enums/vehicle-type.enum';
+import { VehicleType } from '../enums/vehicle-type.enum';
 
 @InputType()
 export class UpdateVehicleInput {

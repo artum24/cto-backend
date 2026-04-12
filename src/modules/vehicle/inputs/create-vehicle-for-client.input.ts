@@ -8,7 +8,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { VehicleType } from '@/modules/vehicle/enums/vehicle-type.enum';
+import { VehicleType } from '../enums/vehicle-type.enum';
 
 /** Same fields as CreateVehicleInput except clientId (set after client is created). */
 @InputType()

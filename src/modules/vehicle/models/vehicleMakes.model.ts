@@ -1,5 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { VehicleType } from '@/modules/vehicle/enums/vehicle-type.enum';
+import { VehicleType } from '../enums/vehicle-type.enum';
 
 @ObjectType()
 export class VehicleMake {
