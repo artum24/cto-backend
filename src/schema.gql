@@ -211,8 +211,8 @@ type Invitation {
   fullName: String
   id: ID!
   phone: String
-  role: Int
-  status: Int
+  role: UserRoles
+  status: UserStatuses
   updatedAt: DateTime!
 }
 
@@ -476,15 +476,30 @@ input UpdateVehicleInput {
 }
 
 type User {
+  authUserId: ID
   company: Company!
+  companyId: ID
   createdAt: DateTime!
   email: String
   fullName: String
   id: ID!
   phone: String
-  role: Int
-  status: Int
+  role: UserRoles
+  status: UserStatuses
   updatedAt: DateTime!
+}
+
+"""Possible user roles"""
+enum UserRoles {
+  ADMIN
+  USER
+}
+
+"""Possible user statuses"""
+enum UserStatuses {
+  ACTIVE
+  INVITED
+  REMOVED
 }
 
 type Vehicle {

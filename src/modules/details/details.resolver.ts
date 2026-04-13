@@ -27,6 +27,7 @@ import { CreateDetailInput } from './inputs/create-detail.input';
 import { UpdateDetailInput } from './inputs/update-detail.input';
 import { DetailsListInput } from './inputs/details-list.input';
 import { RecordDetailMovementInput } from './inputs/record-detail-movement.input';
+import { DetailStatuses } from './enums/detail-statuses.enum';
 
 @Resolver(() => Detail)
 @UseGuards(SupabaseAuthGuard)
@@ -36,6 +37,15 @@ export class DetailsResolver {
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
   ) {}
+
+  @ResolveField(() => DetailStatuses, { nullable: true })
+  status(@Parent() detail: Detail): DetailStatuses | null {
+    const count = detail.count ?? 0;
+    const min = detail.minimum_count ?? 0;
+    if (count === 0) return DetailStatuses.OUT_OF_STOCK;
+    if (count > min) return DetailStatuses.IN_STOCK;
+    return DetailStatuses.LOW_STOCK;
+  }
 
   @ResolveField(() => Category, { nullable: true })
   async category(@Parent() detail: Detail): Promise<Category | null> {

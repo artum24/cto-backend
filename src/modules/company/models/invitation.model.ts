@@ -1,4 +1,6 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { UserRoles } from '@/modules/user/enums/user-roles.enum';
+import { UserStatuses } from '@/modules/user/enums/user-statuses.enum';
 
 @ObjectType()
 export class Invitation {
@@ -20,11 +22,11 @@ export class Invitation {
   @Field(() => String, { nullable: true })
   fullName?: string | null;
 
-  @Field(() => Int, { nullable: true })
-  role?: number | null;
+  @Field(() => UserRoles, { nullable: true })
+  role?: UserRoles | null;
 
-  @Field(() => Int, { nullable: true })
-  status?: number | null;
+  @Field(() => UserStatuses, { nullable: true })
+  status?: UserStatuses | null;
 
   @Field(() => String, { nullable: true })
   phone?: string | null;
