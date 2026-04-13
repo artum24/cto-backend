@@ -19,6 +19,7 @@ import { DetailHistoryUser } from './models/detail-history-user.model';
 import { DetailsListResult } from './models/details-list.model';
 import { DetailsService } from './details.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { SupabaseAdminClient } from '@/auth/supabase.client';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { Category } from '@/modules/categories/models/category.model';
 import { Suplier } from '@/modules/supliers/models/suplier.model';
@@ -231,16 +232,30 @@ export class DetailsResolver {
 
 @Resolver(() => DetailHistory)
 export class DetailHistoryResolver {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly supabaseAdmin: SupabaseAdminClient,
+  ) {}
 
   @ResolveField(() => DetailHistoryUser, { nullable: true })
   async user(@Parent() history: DetailHistory): Promise<DetailHistoryUser | null> {
     if (!history.user_id) return null;
     const row = await this.prisma.users.findUnique({
       where: { id: history.user_id },
-      select: { id: true, email: true },
+      select: { id: true, email: true, auth_user_id: true },
     });
     if (!row) return null;
-    return { id: row.id, email: row.email ?? null, fullName: null };
+
+    let fullName: string | null = null;
+    if (row.auth_user_id) {
+      const { data } = await this.supabaseAdmin.client.auth.admin.getUserById(
+        row.auth_user_id,
+      );
+      const meta = data?.user?.user_metadata as Record<string, unknown> | undefined;
+      const raw = meta?.['full_name'] ?? meta?.['name'] ?? meta?.['display_name'];
+      fullName = typeof raw === 'string' && raw.trim() ? raw.trim() : null;
+    }
+
+    return { id: row.id, email: row.email ?? null, fullName };
   }
 }

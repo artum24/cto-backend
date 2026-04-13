@@ -8,6 +8,7 @@ import {
   buildVehicleUncheckedCreate,
   vehicleInputWithoutClientId,
 } from '@/modules/vehicle/vehicle-create-data';
+import { VehicleType } from './enums/vehicle-type.enum';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -123,16 +124,16 @@ export class VehicleService {
     return models.map(bigintToString);
   }
 
-  async findAllModelsByMake(makeId: number) {
+  async findAllModelsByMake(vehicleMakeId: number, vehicleType: VehicleType) {
     const models = await this.prisma.vehicle_models.findMany({
-      where: { vehicle_make_id: makeId },
+      where: { vehicle_make_id: vehicleMakeId, vehicle_type: vehicleType },
     });
     return models.map(bigintToString);
   }
 
-  async findAllMakesByType(typeId: number) {
+  async findAllMakesByType(vehicleType: VehicleType) {
     const makes = await this.prisma.vehicle_makes.findMany({
-      where: { vehicle_type: typeId },
+      where: { vehicle_type: vehicleType },
     });
     return makes.map(bigintToString);
   }

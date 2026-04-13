@@ -3,6 +3,8 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { SupabaseAdminClient } from '@/auth/supabase.client';
+import { UserRoles } from './enums/user-roles.enum';
+import { UserStatuses } from './enums/user-statuses.enum';
 
 @Injectable()
 export class UserService {
@@ -48,8 +50,8 @@ export class UserService {
         auth_user_id: currentUser.authUserId,
         email: userEmail,
         company_id: invitation.company_id,
-        role: 2,
-        status: 1,
+        role: UserRoles.USER,
+        status: UserStatuses.ACTIVE,
         created_at: now,
         updated_at: now,
       },

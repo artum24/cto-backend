@@ -43,6 +43,9 @@ export class Detail {
   @Field(() => Boolean)
   archived!: boolean;
 
+  @Field(() => Date, { name: 'archivedAt', nullable: true })
+  archived_at?: Date | null;
+
   @Field(() => Category, { nullable: true })
   category?: Category | null;
 

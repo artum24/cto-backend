@@ -1,5 +1,7 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Company } from '@/modules/company/models/company.model';
+import { UserRoles } from '../enums/user-roles.enum';
+import { UserStatuses } from '../enums/user-statuses.enum';
 
 @ObjectType()
 export class User {
@@ -15,11 +17,11 @@ export class User {
   @Field(() => ID, { name: 'companyId', nullable: true })
   company_id?: string | null;
 
-  @Field(() => Int, { nullable: true })
-  role?: number | null;
+  @Field(() => UserRoles, { nullable: true })
+  role?: UserRoles | null;
 
-  @Field(() => Int, { nullable: true })
-  status?: number | null;
+  @Field(() => UserStatuses, { nullable: true })
+  status?: UserStatuses | null;
 
   // resolved via @ResolveField in UserResolver
   @Field(() => String, { nullable: true })

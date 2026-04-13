@@ -13,6 +13,7 @@ import { InviteMemberInput } from '@/modules/company/inputs/invite-member.input'
 import { InvitationCreateInput } from '@/modules/company/inputs/invitation-create.input';
 import { Invitation } from '@/modules/company/models/invitation.model';
 import { CompanyCreateOutput } from '@/modules/company/models/company-create.output';
+import { UserRoles } from '@/modules/user/enums/user-roles.enum';
 import { InvitationCreateOutput } from '@/modules/company/models/invitation-create.output';
 
 @Resolver(() => Company)
@@ -89,7 +90,7 @@ export class CompanyResolver {
     if (!current?.user?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    if (current?.user?.role !== 1) {
+    if (current?.user?.role !== UserRoles.ADMIN) {
       throw new Error('You have no permission for inviting users.');
     }
     await this.companyService.inviteMember(

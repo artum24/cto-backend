@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsOptional, IsString, IsInt, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsInt, MaxLength } from 'class-validator';
+import { DetailHistoryActionType } from '../enums/detail-history-action-type.enum';
 
 @InputType()
 export class RecordDetailMovementInput {
@@ -7,9 +8,9 @@ export class RecordDetailMovementInput {
   @IsString()
   detailId: string;
 
-  @Field(() => Int)
-  @IsInt()
-  action_type: number;
+  @Field(() => DetailHistoryActionType)
+  @IsEnum(DetailHistoryActionType)
+  action_type: DetailHistoryActionType;
 
   @Field(() => Int)
   @IsInt()

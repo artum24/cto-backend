@@ -6,6 +6,7 @@ import { CreateDetailInput } from './inputs/create-detail.input';
 import { UpdateDetailInput } from './inputs/update-detail.input';
 import { DetailsListInput } from './inputs/details-list.input';
 import { RecordDetailMovementInput } from './inputs/record-detail-movement.input';
+import { DetailStatuses } from './enums/detail-statuses.enum';
 
 @Injectable()
 export class DetailsService {
@@ -40,14 +41,60 @@ export class DetailsService {
 
   async findAll(storageId: bigint, input: DetailsListInput) {
     await this.ensureStorageAccess(storageId);
-    const { categoryId, search, page = 1, limit = 25 } = input;
+    const {
+      categoryId,
+      suplierId,
+      status,
+      archived = false,
+      search,
+      page = 1,
+      limit = 25,
+    } = input;
+
     const where: Prisma.detailsWhereInput = {
       storage_id: storageId,
-      archived: false,
+      archived: archived ?? false,
     };
+
     if (categoryId) {
       where.category_id = BigInt(categoryId);
     }
+
+    if (suplierId) {
+      where.suplier_id = BigInt(suplierId);
+    }
+
+    // Status filter requires column-to-column comparison (count vs minimum_count)
+    // For OUT_OF_STOCK we use Prisma directly; for others we resolve matching IDs via raw SQL
+    if (status === DetailStatuses.OUT_OF_STOCK) {
+      where.count = { equals: 0 };
+    } else if (status === DetailStatuses.LOW_STOCK || status === DetailStatuses.IN_STOCK) {
+      const archivedVal = archived ?? false;
+      const catCondition = categoryId
+        ? Prisma.sql`AND category_id = ${BigInt(categoryId)}`
+        : Prisma.sql``;
+      const supCondition = suplierId
+        ? Prisma.sql`AND suplier_id = ${BigInt(suplierId)}`
+        : Prisma.sql``;
+      const statusCondition =
+        status === DetailStatuses.LOW_STOCK
+          ? Prisma.sql`count > 0 AND count <= minimum_count`
+          : Prisma.sql`count > minimum_count`;
+
+      const matchingIds = await this.prisma.$queryRaw<{ id: bigint }[]>(
+        Prisma.sql`
+          SELECT id FROM details
+          WHERE storage_id = ${storageId}
+            AND archived = ${archivedVal}
+            ${catCondition}
+            ${supCondition}
+            AND ${statusCondition}
+        `,
+      );
+
+      where.id = { in: matchingIds.map((r) => r.id) };
+    }
+
     if (search && search.trim()) {
       const term = search.trim();
       where.OR = [
@@ -55,6 +102,7 @@ export class DetailsService {
         { article: { contains: term, mode: 'insensitive' } },
       ];
     }
+
     const [items, total] = await Promise.all([
       this.prisma.details.findMany({
         where,

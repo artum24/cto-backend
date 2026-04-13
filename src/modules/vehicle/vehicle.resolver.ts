@@ -16,6 +16,7 @@ import { UpdateVehicleInput } from '@/modules/vehicle/inputs/update-vehicle.inpu
 import { VehicleUpdateInput } from '@/modules/vehicle/inputs/vehicle-update.input';
 import { FilteredVehiclesResult } from '@/modules/vehicle/models/filtered-vehicles.model';
 import { VehicleUpdateOutput } from '@/modules/vehicle/models/vehicle-update.output';
+import { VehicleType } from './enums/vehicle-type.enum';
 
 @Resolver(() => Vehicle)
 export class VehicleResolver {
@@ -72,20 +73,21 @@ export class VehicleResolver {
   @Query(() => [VehicleModel], { name: 'vehicleModelsByMake' })
   async vehiclesModelsByMake(
     @CurrentUser() current?: AuthContextUser,
-    @Args('makeId', { type: () => Int }) makeId?: number,
+    @Args('vehicleMakeId', { type: () => Int }) vehicleMakeId?: number,
+    @Args('vehicleType', { type: () => VehicleType }) vehicleType?: VehicleType,
   ) {
-    if (!current?.user?.company_id || !makeId) return [];
-    return this.vehicleService.findAllModelsByMake(makeId);
+    if (!current?.user?.company_id || !vehicleMakeId || !vehicleType) return [];
+    return this.vehicleService.findAllModelsByMake(vehicleMakeId, vehicleType);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [VehicleMake], { name: 'vehicleMakesByType' })
   async vehiclesMakesByType(
     @CurrentUser() current?: AuthContextUser,
-    @Args('typeId', { type: () => Int }) typeId?: number,
+    @Args('vehicleType', { type: () => VehicleType }) vehicleType?: VehicleType,
   ) {
-    if (!current?.user?.company_id || !typeId) return [];
-    return this.vehicleService.findAllMakesByType(typeId);
+    if (!current?.user?.company_id || !vehicleType) return [];
+    return this.vehicleService.findAllMakesByType(vehicleType);
   }
 
   @UseGuards(SupabaseAuthGuard)

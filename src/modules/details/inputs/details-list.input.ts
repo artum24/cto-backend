@@ -1,11 +1,26 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsOptional, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsInt, Min, Max, IsEnum, IsBoolean } from 'class-validator';
+import { DetailStatuses } from '../enums/detail-statuses.enum';
 
 @InputType()
 export class DetailsListInput {
   @Field(() => String, { nullable: true })
   @IsOptional()
   categoryId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  suplierId?: string | null;
+
+  @Field(() => DetailStatuses, { nullable: true })
+  @IsOptional()
+  @IsEnum(DetailStatuses)
+  status?: DetailStatuses | null;
+
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  @IsOptional()
+  @IsBoolean()
+  archived?: boolean | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()

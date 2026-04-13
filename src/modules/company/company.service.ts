@@ -6,6 +6,8 @@ import { CompanyInput } from './inputs/company.input';
 import { UpdateCompanyInput } from './inputs/update-company.input';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { SupabaseAdminClient } from '@/auth/supabase.client';
+import { UserRoles } from '@/modules/user/enums/user-roles.enum';
+import { UserStatuses } from '@/modules/user/enums/user-statuses.enum';
 
 @Injectable()
 export class CompanyService {
@@ -153,15 +155,15 @@ export class CompanyService {
           where: { email: currentUser.authUser.email as string },
           update: {
             company_id: company.id,
-            role: 1,
-            status: 1,
+            role: UserRoles.ADMIN,
+            status: UserStatuses.ACTIVE,
           },
           create: {
             auth_user_id: currentUser.authUserId,
             email: currentUser.authUser.email,
             company_id: company.id,
-            role: 1,
-            status: 1,
+            role: UserRoles.ADMIN,
+            status: UserStatuses.ACTIVE,
             created_at: new Date(),
             updated_at: new Date(),
           },
