@@ -21,8 +21,11 @@ export class UserService {
   }
 
   async findUserInvitations(email: string) {
+    const normalized = email.trim().toLowerCase();
     const list = await this.prisma.invitations.findMany({
-      where: { email },
+      where: {
+        email: { equals: normalized, mode: 'insensitive' },
+      },
     });
     return list.map((row) => bigintToString(row));
   }

@@ -32,8 +32,9 @@ export class ClientsResolver {
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [ClientModel], { name: 'clients' })
   async clients(@CurrentUser() current?: AuthContextUser) {
-    if (!current?.user?.company_id) return [];
-    return this.clientsService.findAll(BigInt(current.user.company_id));
+    const u = current?.user;
+    if (!u?.company_id) return [];
+    return this.clientsService.findAll(BigInt(u.company_id));
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -42,13 +43,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('id', { type: () => GraphQLID }) clientId: string,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.findByClientId(
-      BigInt(current.user.company_id),
-      clientId,
-    );
+    return this.clientsService.findByClientId(BigInt(u.company_id), clientId);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -57,10 +56,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: CreateClientInput,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.create(BigInt(current.user.company_id), input);
+    return this.clientsService.create(BigInt(u.company_id), input);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -69,13 +69,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: CreateClientWithVehiclesInput,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.createWithVehicles(
-      BigInt(current.user.company_id),
-      input,
-    );
+    return this.clientsService.createWithVehicles(BigInt(u.company_id), input);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -84,10 +82,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: UpdateClientInput,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.update(BigInt(current.user.company_id), input);
+    return this.clientsService.update(BigInt(u.company_id), input);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -96,13 +95,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('id', { type: () => GraphQLID }) clientId: string,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.archive(
-      BigInt(current.user.company_id),
-      clientId,
-    );
+    return this.clientsService.archive(BigInt(u.company_id), clientId);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -111,13 +108,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('id', { type: () => GraphQLID }) clientId: string,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.remove(
-      BigInt(current.user.company_id),
-      clientId,
-    );
+    return this.clientsService.remove(BigInt(u.company_id), clientId);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -126,13 +121,11 @@ export class ClientsResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('phone') phone: string,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.validatePhone(
-      BigInt(current.user.company_id),
-      phone,
-    );
+    return this.clientsService.validatePhone(BigInt(u.company_id), phone);
   }
 
   @ResolveField(() => [Vehicle], { nullable: 'itemsAndList' })

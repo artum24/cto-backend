@@ -10,6 +10,7 @@ import {
 } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '@/auth/current-user.decorator';
+import { AllowUnregisteredAppUser } from '@/auth/allow-unregistered-app-user.decorator';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { User } from '@/modules/user/models/user.model';
@@ -128,6 +129,7 @@ export class UserResolver {
     );
   }
 
+  @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
   @Query(() => User, { name: 'me' })
   me(@CurrentUser() current?: AuthContextUser) {
@@ -135,13 +137,17 @@ export class UserResolver {
     return this.userService.findById(current.user.id);
   }
 
+  @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [Invitation], { name: 'userInvitations' })
   userInvitations(@CurrentUser() current?: AuthContextUser) {
-    if (!current?.user?.email) return null;
-    return this.userService.findUserInvitations(current.user.email);
+    const email =
+      current?.user?.email?.trim() || current?.authUser?.email?.trim();
+    if (!email) return [];
+    return this.userService.findUserInvitations(email);
   }
 
+  @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
   @Query(() => User, { name: 'acceptInvite' })
   async acceptInvite(
@@ -151,15 +157,7 @@ export class UserResolver {
     return this.userService.acceptInvitation(id, current);
   }
 
-  @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => User, { name: 'acceptInvitation' })
-  async acceptInvitation(
-    @CurrentUser() current: AuthContextUser,
-    @Args('invitationId') invitationId: string,
-  ) {
-    return this.userService.acceptInvitation(invitationId, current);
-  }
-
+  @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Boolean, { name: 'declineInvitation' })
   async declineInvitation(

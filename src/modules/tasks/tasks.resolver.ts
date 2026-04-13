@@ -14,8 +14,9 @@ export class TasksResolver {
   constructor(private readonly tasksService: TasksService) {}
 
   private companyId(user: AuthContextUser): bigint {
-    if (!user.user.company_id) throw new Error('User is not associated with a company');
-    return BigInt(user.user.company_id);
+    const u = user.user;
+    if (!u?.company_id) throw new Error('User is not associated with a company');
+    return BigInt(u.company_id);
   }
 
   @Query(() => [Task], { name: 'tasks' })

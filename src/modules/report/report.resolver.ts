@@ -21,7 +21,8 @@ export class ReportResolver {
     @Args('jobId') jobId: string,
     @CurrentUser() user: AuthContextUser,
   ) {
-    if (!user.user.company_id) throw new Error('User is not associated with a company');
-    return this.reportService.findByJobId(jobId, BigInt(user.user.company_id));
+    const u = user.user;
+    if (!u?.company_id) throw new Error('User is not associated with a company');
+    return this.reportService.findByJobId(jobId, BigInt(u.company_id));
   }
 }

@@ -21,14 +21,15 @@ export class InvoiceController {
     @Res() res: Response,
     @CurrentUser() user: AuthContextUser,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       res.status(403).json({ error: 'User is not associated with a company' });
       return;
     }
 
     const pdfBuffer = await this.invoiceService.getPdfBuffer(
       BigInt(taskId),
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
 
     res.set({

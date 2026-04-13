@@ -46,13 +46,14 @@ export class UploadController {
       throw new BadRequestException('Only Excel files (.xlsx, .xls) are allowed');
     }
 
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new BadRequestException('User is not associated with a company');
     }
 
     const jobId = await this.uploadService.enqueueXlsxImport(
       file.buffer,
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
 
     return { jobId };

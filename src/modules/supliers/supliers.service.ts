@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
@@ -27,9 +31,9 @@ export class SupliersService {
         name: input.name ?? null,
         phone: input.phone ?? null,
         email: input.email ?? null,
-        site_url: input.site_url ?? null,
+        site_url: input.siteUrl ?? null,
         comment: input.comment ?? null,
-        suplier_name: input.suplier_name ?? null,
+        suplier_name: input.suplierName ?? null,
         created_at: now,
         updated_at: now,
       },
@@ -43,7 +47,7 @@ export class SupliersService {
       where: { id, storage_id: storageId },
     });
     if (!existing) {
-      throw new Error('Suplier not found in this storage.');
+      throw new NotFoundException('Suplier not found in this storage.');
     }
     const data: Prisma.supliersUpdateInput = { updated_at: new Date() };
     if (input.name !== undefined) data.name = input.name ?? null;
@@ -67,7 +71,7 @@ export class SupliersService {
       where: { id: idBigInt, storage_id: storageId },
     });
     if (!existing) {
-      throw new Error('Suplier not found in this storage.');
+      throw new NotFoundException('Suplier not found in this storage.');
     }
     const now = new Date();
     const row = await this.prisma.supliers.update({
@@ -83,14 +87,14 @@ export class SupliersService {
       where: { id: idBigInt, storage_id: storageId },
     });
     if (!existing) {
-      throw new Error('Suplier not found in this storage.');
+      throw new NotFoundException('Suplier not found in this storage.');
     }
     const detailsCount = await this.prisma.details.count({
       where: { suplier_id: idBigInt },
     });
     if (detailsCount > 0) {
-      throw new Error(
-        `Cannot delete supplier: ${detailsCount} detail(s) still reference it.`,
+      throw new ConflictException(
+        `Cannot delete supplier: ${detailsCount} detail(s) still reference it. Unlink or reassign details first, or use archiveSuplier.`,
       );
     }
     await this.prisma.supliers.delete({ where: { id: idBigInt } });

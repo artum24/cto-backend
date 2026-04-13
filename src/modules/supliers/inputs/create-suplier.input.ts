@@ -25,7 +25,7 @@ export class CreateSuplierInput {
   @IsOptional()
   @IsUrl()
   @MaxLength(500)
-  site_url?: string | null;
+  siteUrl?: string | null;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -37,5 +37,5 @@ export class CreateSuplierInput {
   @IsOptional()
   @IsString()
   @Length(1, 255)
-  suplier_name?: string | null;
+  suplierName?: string | null;
 }

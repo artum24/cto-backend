@@ -23,10 +23,11 @@ export class CategoriesResolver {
     @Args('archived', { type: () => Boolean, nullable: true })
     archived?: boolean | null,
   ) {
-    if (!user.user.company_id) return [];
+    const u = user.user;
+    if (!u?.company_id) return [];
 
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) return [];
 
@@ -41,12 +42,13 @@ export class CategoriesResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: CreateCategoryInput,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
 
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -60,12 +62,13 @@ export class CategoriesResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: UpdateCategoryInput,
   ): Promise<Category> {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
 
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -79,12 +82,13 @@ export class CategoriesResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id', { type: () => ID }) id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
 
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -98,12 +102,13 @@ export class CategoriesResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id', { type: () => ID }) id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
 
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');

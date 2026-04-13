@@ -87,11 +87,12 @@ export class DetailsResolver {
     @Args('input', { nullable: true, type: () => DetailsListInput })
     input?: DetailsListInput | null,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       return { items: [], total: 0, page: 1, limit: 25 };
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       return { items: [], total: 0, page: 1, limit: 25 };
@@ -104,11 +105,12 @@ export class DetailsResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -121,11 +123,12 @@ export class DetailsResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: CreateDetailInput,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -138,11 +141,12 @@ export class DetailsResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: UpdateDetailInput,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -155,11 +159,12 @@ export class DetailsResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -172,11 +177,12 @@ export class DetailsResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -190,9 +196,10 @@ export class DetailsResolver {
     @Args('detailId', { nullable: true, type: () => ID }) detailId?: string | null,
     @Args('taskId', { nullable: true, type: () => ID }) taskId?: string | null,
   ) {
-    if (!user.user.company_id) return [];
+    const u = user.user;
+    if (!u?.company_id) return [];
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) return [];
     return this.detailsService.findDetailHistories(BigInt(storage.id), {
@@ -207,18 +214,19 @@ export class DetailsResolver {
     @Args('id') id: string,
     @Args('count', { type: () => Int }) count: number,
   ) {
-    if (!user.user.company_id || !user.user.id) {
+    const u = user.user;
+    if (!u?.company_id || !u.id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
     }
     return this.detailsService.detailCountUpdate(
       BigInt(storage.id),
-      user.user.id,
+      u.id,
       id,
       count,
     );
@@ -229,18 +237,19 @@ export class DetailsResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: RecordDetailMovementInput,
   ) {
-    if (!user.user.company_id || !user.user.id) {
+    const u = user.user;
+    if (!u?.company_id || !u.id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
     }
     return this.detailsService.recordDetailMovement(
       BigInt(storage.id),
-      user.user.id,
+      u.id,
       input,
     );
   }

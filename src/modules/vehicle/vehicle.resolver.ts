@@ -12,7 +12,6 @@ import { VehicleModel } from '@/modules/vehicle/models/vehicleModel.model';
 import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
 import { OrderByInput } from '@/modules/vehicle/inputs/order-by.input';
 import { CreateVehicleInput } from '@/modules/vehicle/inputs/create-vehicle.input';
-import { UpdateVehicleInput } from '@/modules/vehicle/inputs/update-vehicle.input';
 import { VehicleUpdateInput } from '@/modules/vehicle/inputs/vehicle-update.input';
 import { FilteredVehiclesResult } from '@/modules/vehicle/models/filtered-vehicles.model';
 import { VehicleUpdateOutput } from '@/modules/vehicle/models/vehicle-update.output';
@@ -28,11 +27,9 @@ export class VehicleResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: VehiclesInput,
   ) {
-    if (!current?.user?.company_id) return [];
-    return this.vehicleService.findAndFilter(
-      BigInt(current.user.company_id),
-      input,
-    );
+    const u = current.user;
+    if (!u?.company_id) return [];
+    return this.vehicleService.findAndFilter(BigInt(u.company_id), input);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -44,10 +41,11 @@ export class VehicleResolver {
     @Args('search', { type: () => String, nullable: true }) search?: string | null,
     @Args('orderBy', { type: () => OrderByInput, nullable: true }) orderBy?: OrderByInput | null,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       return { collection: [], metadata: { currentPage: 1, limitValue: 25, totalCount: 0, totalPages: 0 } };
     }
-    return this.vehicleService.filteredVehicles(BigInt(current.user.company_id), {
+    return this.vehicleService.filteredVehicles(BigInt(u.company_id), {
       page,
       limit,
       search,
@@ -58,14 +56,16 @@ export class VehicleResolver {
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [VehicleMake], { name: 'vehicleMakes' })
   async vehiclesMakes(@CurrentUser() current?: AuthContextUser) {
-    if (!current?.user?.company_id) return [];
+    const u = current?.user;
+    if (!u?.company_id) return [];
     return this.vehicleService.findAllMakes();
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [VehicleModel], { name: 'vehicleModels' })
   async vehiclesModels(@CurrentUser() current?: AuthContextUser) {
-    if (!current?.user?.company_id) return [];
+    const u = current?.user;
+    if (!u?.company_id) return [];
     return this.vehicleService.findAllModels();
   }
 
@@ -76,7 +76,8 @@ export class VehicleResolver {
     @Args('vehicleMakeId', { type: () => Int }) vehicleMakeId?: number,
     @Args('vehicleType', { type: () => VehicleType }) vehicleType?: VehicleType,
   ) {
-    if (!current?.user?.company_id || !vehicleMakeId || !vehicleType) return [];
+    const u = current?.user;
+    if (!u?.company_id || !vehicleMakeId || !vehicleType) return [];
     return this.vehicleService.findAllModelsByMake(vehicleMakeId, vehicleType);
   }
 
@@ -86,7 +87,8 @@ export class VehicleResolver {
     @CurrentUser() current?: AuthContextUser,
     @Args('vehicleType', { type: () => VehicleType }) vehicleType?: VehicleType,
   ) {
-    if (!current?.user?.company_id || !vehicleType) return [];
+    const u = current?.user;
+    if (!u?.company_id || !vehicleType) return [];
     return this.vehicleService.findAllMakesByType(vehicleType);
   }
 
@@ -96,22 +98,11 @@ export class VehicleResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: CreateVehicleInput,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.vehicleService.create(BigInt(current.user.company_id), input);
-  }
-
-  @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => Vehicle, { name: 'updateVehicle' })
-  async updateVehicle(
-    @CurrentUser() current: AuthContextUser,
-    @Args('input') input: UpdateVehicleInput,
-  ) {
-    if (!current?.user?.company_id) {
-      throw new Error('User is not associated with a company.');
-    }
-    return this.vehicleService.update(BigInt(current.user.company_id), input);
+    return this.vehicleService.create(BigInt(u.company_id), input);
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -120,10 +111,11 @@ export class VehicleResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: VehicleUpdateInput,
   ): Promise<VehicleUpdateOutput> {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    const result = await this.vehicleService.update(BigInt(current.user.company_id), input);
+    const result = await this.vehicleService.update(BigInt(u.company_id), input);
     const { client, ...vehicleFields } = result as any;
     return { vehicle: vehicleFields, client };
   }
@@ -134,20 +126,23 @@ export class VehicleResolver {
     @CurrentUser() current: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.vehicleService.archive(BigInt(current.user.company_id), id);
+    return this.vehicleService.archive(BigInt(u.company_id), id);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Boolean, { name: 'deleteVehicle' })
   async deleteVehicle(
     @CurrentUser() current: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!current?.user?.company_id) {
+    const u = current.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.vehicleService.remove(BigInt(current.user.company_id), id);
+    return this.vehicleService.remove(BigInt(u.company_id), id);
   }
 }

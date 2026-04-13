@@ -98,8 +98,8 @@ input CreateSuplierInput {
   email: String
   name: String
   phone: String
-  site_url: String
-  suplier_name: String
+  siteUrl: String
+  suplierName: String
 }
 
 input CreateTaskInput {
@@ -216,10 +216,6 @@ type Invitation {
   updatedAt: DateTime!
 }
 
-input InviteMemberInput {
-  email: String!
-}
-
 type Invoice {
   created_at: DateTime!
   id: ID!
@@ -235,7 +231,6 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type Mutation {
-  acceptInvitation(invitationId: String!): User!
   archiveCategory(id: ID!): Category!
   archiveClient(id: String!): Client!
   archiveDetail(id: String!): Detail!
@@ -255,7 +250,6 @@ type Mutation {
   createVehicle(input: CreateVehicleInput!): Vehicle!
   declineInvitation(invitationId: String!): Boolean!
   generateInvoice(taskId: ID!): Invoice!
-  inviteMember(input: InviteMemberInput!): Invitation!
   recordDetailMovement(input: RecordDetailMovementInput!): DetailHistory!
   serviceCreate(input: CreateServiceInput!): Service!
   serviceDelete(id: ID!): Service!
@@ -268,7 +262,6 @@ type Mutation {
   updateCompany(input: UpdateCompanyInput!): Company!
   updateDetail(input: UpdateDetailInput!): Detail!
   updateSuplier(input: UpdateSuplierInput!): Suplier!
-  updateVehicle(input: UpdateVehicleInput!): Vehicle!
   vehicleHistoryCreate(input: CreateVehicleHistoryInput!): VehicleHistory!
   vehicleHistoryDelete(id: ID!): VehicleHistory!
   vehicleHistoryUpdate(input: UpdateVehicleHistoryInput!): VehicleHistory!

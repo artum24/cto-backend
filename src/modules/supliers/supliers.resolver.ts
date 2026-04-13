@@ -23,9 +23,10 @@ export class SupliersResolver {
     @Args('archived', { nullable: true, type: () => Boolean })
     archived?: boolean | null,
   ) {
-    if (!user.user.company_id) return [];
+    const u = user.user;
+    if (!u?.company_id) return [];
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) return [];
     return this.supliersService.findAll(BigInt(storage.id), archived);
@@ -36,11 +37,12 @@ export class SupliersResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: CreateSuplierInput,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -53,11 +55,12 @@ export class SupliersResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('input') input: UpdateSuplierInput,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -70,11 +73,12 @@ export class SupliersResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');
@@ -87,11 +91,12 @@ export class SupliersResolver {
     @CurrentUser() user: AuthContextUser,
     @Args('id') id: string,
   ) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     const storage = await this.storageService.findByCompanyId(
-      BigInt(user.user.company_id),
+      BigInt(u.company_id),
     );
     if (!storage) {
       throw new Error('Storage not found for this company.');

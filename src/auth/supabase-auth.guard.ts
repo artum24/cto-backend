@@ -1,14 +1,17 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { SupabaseAdminClient } from './supabase.client';
+import { ALLOW_UNREGISTERED_APP_USER_KEY } from './allow-unregistered-app-user.decorator';
 import type { users, companies } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
@@ -16,7 +19,8 @@ type UserRecord = users & { companies?: companies | null };
 
 export type AuthContextUser = {
   authUserId: string;
-  user: UserRecord;
+  /** Present after the user exists in Prisma; null for JWT-only (e.g. pending invite). */
+  user: UserRecord | null;
   authUser: { id: string; email?: string | null; role?: string | null };
 };
 
@@ -28,6 +32,7 @@ export class SupabaseAuthGuard implements CanActivate {
     private readonly prisma: PrismaService,
     private readonly supabaseAdmin: SupabaseAdminClient,
     private readonly config: ConfigService,
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -40,13 +45,21 @@ export class SupabaseAuthGuard implements CanActivate {
       include: { companies: true },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    const allowUnregisteredAppUser =
+      this.reflector.getAllAndOverride<boolean>(
+        ALLOW_UNREGISTERED_APP_USER_KEY,
+        [context.getHandler(), context.getClass()],
+      ) ?? false;
+
+    if (!user && !allowUnregisteredAppUser) {
+      throw new ForbiddenException(
+        'No application profile is linked to this account yet. Complete signup or accept a company invitation.',
+      );
     }
 
     req.user = {
       authUserId,
-      user,
+      user: user ?? null,
       authUser: {
         id: supabaseUser.id,
         email: supabaseUser.email,

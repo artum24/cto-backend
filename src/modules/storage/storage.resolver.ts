@@ -13,9 +13,10 @@ export class StorageResolver {
   @Query(() => Storage, { name: 'storage', nullable: true })
   @UseGuards(SupabaseAuthGuard)
   async getStorageForCompany(@CurrentUser() user: AuthContextUser) {
-    if (!user.user.company_id) {
+    const u = user.user;
+    if (!u?.company_id) {
       return null;
     }
-    return this.storageService.findByCompanyId(BigInt(user.user.company_id));
+    return this.storageService.findByCompanyId(BigInt(u.company_id));
   }
 }
