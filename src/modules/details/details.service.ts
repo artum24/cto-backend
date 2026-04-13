@@ -7,6 +7,7 @@ import { UpdateDetailInput } from './inputs/update-detail.input';
 import { DetailsListInput } from './inputs/details-list.input';
 import { RecordDetailMovementInput } from './inputs/record-detail-movement.input';
 import { DetailStatuses } from './enums/detail-statuses.enum';
+import { categorySelectPublic } from '@/modules/categories/category-prisma-select';
 
 @Injectable()
 export class DetailsService {
@@ -25,6 +26,7 @@ export class DetailsService {
   ): Promise<void> {
     const cat = await this.prisma.categories.findUnique({
       where: { id: categoryId },
+      select: categorySelectPublic,
     });
     if (!cat || cat.storage_id !== storageId) {
       throw new Error('Category not found in this storage.');

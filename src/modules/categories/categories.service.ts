@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CreateCategoryInput } from './inputs/create-category.input';
 import { UpdateCategoryInput } from './inputs/update-category.input';
+import { categorySelectPublic } from './category-prisma-select';
 
 @Injectable()
 export class CategoriesService {
@@ -14,7 +15,10 @@ export class CategoriesService {
     if (typeof archived === 'boolean') {
       where.archived = archived;
     }
-    const categories = await this.prisma.categories.findMany({ where });
+    const categories = await this.prisma.categories.findMany({
+      where,
+      select: categorySelectPublic,
+    });
     return categories.map(bigintToString);
   }
 
@@ -26,6 +30,7 @@ export class CategoriesService {
         created_at: new Date(),
         updated_at: new Date(),
       },
+      select: categorySelectPublic,
     });
     return bigintToString(newCategory);
   }
@@ -33,6 +38,7 @@ export class CategoriesService {
   async update(input: UpdateCategoryInput, storageId: bigint) {
     const category = await this.prisma.categories.findUnique({
       where: { id: BigInt(input.id) },
+      select: categorySelectPublic,
     });
 
     if (!category || category.storage_id !== storageId) {
@@ -42,6 +48,7 @@ export class CategoriesService {
     const updatedCategory = await this.prisma.categories.update({
       where: { id: BigInt(input.id) },
       data: { name: input.name },
+      select: categorySelectPublic,
     });
 
     return bigintToString(updatedCategory);
@@ -50,6 +57,7 @@ export class CategoriesService {
   async archive(categoryId: bigint, storageId: bigint) {
     const category = await this.prisma.categories.findUnique({
       where: { id: categoryId },
+      select: categorySelectPublic,
     });
 
     if (!category || category.storage_id !== storageId) {
@@ -59,6 +67,7 @@ export class CategoriesService {
     const updatedCategory = await this.prisma.categories.update({
       where: { id: categoryId },
       data: { archived: !category.archived },
+      select: categorySelectPublic,
     });
 
     return bigintToString(updatedCategory);
@@ -67,6 +76,7 @@ export class CategoriesService {
   async remove(categoryId: bigint, storageId: bigint): Promise<boolean> {
     const category = await this.prisma.categories.findUnique({
       where: { id: categoryId },
+      select: categorySelectPublic,
     });
     if (!category || category.storage_id !== storageId) {
       throw new Error('Category not found in this storage');

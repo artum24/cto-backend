@@ -22,6 +22,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SupabaseAdminClient } from '@/auth/supabase.client';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { Category } from '@/modules/categories/models/category.model';
+import { categorySelectPublic } from '@/modules/categories/category-prisma-select';
 import { Suplier } from '@/modules/supliers/models/suplier.model';
 import { CreateDetailInput } from './inputs/create-detail.input';
 import { UpdateDetailInput } from './inputs/update-detail.input';
@@ -56,6 +57,7 @@ export class DetailsResolver {
     const storageId = BigInt(detail.storage_id);
     const row = await this.prisma.categories.findUnique({
       where: { id },
+      select: categorySelectPublic,
     });
     if (!row || row.storage_id !== storageId) {
       return null;
