@@ -303,7 +303,7 @@ enum PhoneValidationValues {
 
 type Query {
   categories(archived: Boolean): [Category!]!
-  client(id: Int!): Client!
+  client(id: ID!): Client!
   clients: [Client!]!
   companyMembers: [CompanyMember!]!
   currentUserCompany: Company!

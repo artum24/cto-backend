@@ -31,11 +31,11 @@ export class CategoriesService {
   }
 
   async update(input: UpdateCategoryInput, storageId: bigint) {
-    const category = await this.prisma.categories.findFirst({
-      where: { id: BigInt(input.id), storage_id: storageId },
+    const category = await this.prisma.categories.findUnique({
+      where: { id: BigInt(input.id) },
     });
 
-    if (!category) {
+    if (!category || category.storage_id !== storageId) {
       throw new Error('Category not found in this storage');
     }
 
@@ -48,11 +48,11 @@ export class CategoriesService {
   }
 
   async archive(categoryId: bigint, storageId: bigint) {
-    const category = await this.prisma.categories.findFirst({
-      where: { id: categoryId, storage_id: storageId },
+    const category = await this.prisma.categories.findUnique({
+      where: { id: categoryId },
     });
 
-    if (!category) {
+    if (!category || category.storage_id !== storageId) {
       throw new Error('Category not found in this storage');
     }
 
@@ -65,10 +65,10 @@ export class CategoriesService {
   }
 
   async remove(categoryId: bigint, storageId: bigint): Promise<boolean> {
-    const category = await this.prisma.categories.findFirst({
-      where: { id: categoryId, storage_id: storageId },
+    const category = await this.prisma.categories.findUnique({
+      where: { id: categoryId },
     });
-    if (!category) {
+    if (!category || category.storage_id !== storageId) {
       throw new Error('Category not found in this storage');
     }
     const detailsCount = await this.prisma.details.count({

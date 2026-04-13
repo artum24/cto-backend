@@ -16,7 +16,7 @@ export class VehicleService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByClientId(id: number | string) {
-    const clientId = typeof id === 'string' ? BigInt(id) : id;
+    const clientId = BigInt(String(id));
     const vehicles = await this.prisma.vehicles.findMany({
       where: { client_id: clientId },
     });

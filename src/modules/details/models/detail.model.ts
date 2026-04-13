@@ -1,6 +1,7 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Category } from '@/modules/categories/models/category.model';
 import { Suplier } from '@/modules/supliers/models/suplier.model';
+import { DetailStatuses } from '../enums/detail-statuses.enum';
 
 @ObjectType()
 export class Detail {
@@ -45,6 +46,10 @@ export class Detail {
 
   @Field(() => Date, { name: 'archivedAt', nullable: true })
   archived_at?: Date | null;
+
+  // computed via @ResolveField in DetailsResolver
+  @Field(() => DetailStatuses, { nullable: true })
+  status?: DetailStatuses | null;
 
   @Field(() => Category, { nullable: true })
   category?: Category | null;

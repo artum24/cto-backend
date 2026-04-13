@@ -1,13 +1,13 @@
 import {
   Args,
-  Int,
+  ID as GraphQLID,
   Parent,
   Query,
   ResolveField,
   Resolver,
   Mutation,
 } from '@nestjs/graphql';
-import { Client } from './models/client.model';
+import { Client as ClientModel } from './models/client.model';
 import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
 import { VehicleService } from '@/modules/vehicle/vehicle.service';
 import { UseGuards } from '@nestjs/common';
@@ -22,7 +22,7 @@ import { CreateClientInput } from './inputs/create-client.input';
 import { CreateClientWithVehiclesInput } from './inputs/create-client-with-vehicles.input';
 import { UpdateClientInput } from './inputs/update-client.input';
 
-@Resolver(() => Client)
+@Resolver(() => ClientModel)
 export class ClientsResolver {
   constructor(
     private readonly vehiclesService: VehicleService,
@@ -30,29 +30,29 @@ export class ClientsResolver {
   ) {}
 
   @UseGuards(SupabaseAuthGuard)
-  @Query(() => [Client], { name: 'clients' })
+  @Query(() => [ClientModel], { name: 'clients' })
   async clients(@CurrentUser() current?: AuthContextUser) {
     if (!current?.user?.company_id) return [];
     return this.clientsService.findAll(BigInt(current.user.company_id));
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Query(() => Client, { name: 'client' })
-  async client(
-    @CurrentUser() current?: AuthContextUser,
-    @Args('id', { type: () => Int }) id?: number,
+  @Query(() => ClientModel, { name: 'client' })
+  async resolveClient(
+    @CurrentUser() current: AuthContextUser,
+    @Args('id', { type: () => GraphQLID }) clientId: string,
   ) {
     if (!current?.user?.company_id) {
       throw new Error('User is not associated with a company.');
     }
     return this.clientsService.findByClientId(
       BigInt(current.user.company_id),
-      id as number,
+      clientId,
     );
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => Client, { name: 'createClient' })
+  @Mutation(() => ClientModel, { name: 'createClient' })
   async createClient(
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: CreateClientInput,
@@ -64,7 +64,7 @@ export class ClientsResolver {
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => Client, { name: 'createClientWithVehicles' })
+  @Mutation(() => ClientModel, { name: 'createClientWithVehicles' })
   async createClientWithVehicles(
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: CreateClientWithVehiclesInput,
@@ -79,7 +79,7 @@ export class ClientsResolver {
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => Client, { name: 'updateClient' })
+  @Mutation(() => ClientModel, { name: 'updateClient' })
   async updateClient(
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: UpdateClientInput,
@@ -91,27 +91,33 @@ export class ClientsResolver {
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => Client, { name: 'archiveClient' })
+  @Mutation(() => ClientModel, { name: 'archiveClient' })
   async archiveClient(
     @CurrentUser() current: AuthContextUser,
-    @Args('id') id: string,
+    @Args('id', { type: () => GraphQLID }) clientId: string,
   ) {
     if (!current?.user?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.archive(BigInt(current.user.company_id), id);
+    return this.clientsService.archive(
+      BigInt(current.user.company_id),
+      clientId,
+    );
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Boolean, { name: 'deleteClient' })
   async deleteClient(
     @CurrentUser() current: AuthContextUser,
-    @Args('id') id: string,
+    @Args('id', { type: () => GraphQLID }) clientId: string,
   ) {
     if (!current?.user?.company_id) {
       throw new Error('User is not associated with a company.');
     }
-    return this.clientsService.remove(BigInt(current.user.company_id), id);
+    return this.clientsService.remove(
+      BigInt(current.user.company_id),
+      clientId,
+    );
   }
 
   @UseGuards(SupabaseAuthGuard)
@@ -130,7 +136,7 @@ export class ClientsResolver {
   }
 
   @ResolveField(() => [Vehicle], { nullable: 'itemsAndList' })
-  async vehicles(@Parent() client: Client) {
-    return this.vehiclesService.findByClientId(client.id);
+  async vehicles(@Parent() parent: ClientModel) {
+    return this.vehiclesService.findByClientId(parent.id);
   }
 }

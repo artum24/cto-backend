@@ -4,7 +4,7 @@ import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
 @ObjectType()
 export class Client {
   @Field(() => ID)
-  id!: number;
+  id!: string;
 
   @Field(() => String, { nullable: true })
   name?: string | null;

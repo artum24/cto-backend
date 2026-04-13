@@ -23,20 +23,24 @@ export class DetailsService {
     categoryId: bigint,
     storageId: bigint,
   ): Promise<void> {
-    const cat = await this.prisma.categories.findFirst({
-      where: { id: categoryId, storage_id: storageId },
+    const cat = await this.prisma.categories.findUnique({
+      where: { id: categoryId },
     });
-    if (!cat) throw new Error('Category not found in this storage.');
+    if (!cat || cat.storage_id !== storageId) {
+      throw new Error('Category not found in this storage.');
+    }
   }
 
   private async ensureSuplierInStorage(
     suplierId: bigint,
     storageId: bigint,
   ): Promise<void> {
-    const sup = await this.prisma.supliers.findFirst({
-      where: { id: suplierId, storage_id: storageId },
+    const sup = await this.prisma.supliers.findUnique({
+      where: { id: suplierId },
     });
-    if (!sup) throw new Error('Suplier not found in this storage.');
+    if (!sup || sup.storage_id !== storageId) {
+      throw new Error('Suplier not found in this storage.');
+    }
   }
 
   async findAll(storageId: bigint, input: DetailsListInput) {

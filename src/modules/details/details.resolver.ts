@@ -52,13 +52,15 @@ export class DetailsResolver {
     if (!detail.category_id) {
       return null;
     }
-    const row = await this.prisma.categories.findFirst({
-      where: {
-        id: BigInt(detail.category_id),
-        storage_id: BigInt(detail.storage_id),
-      },
+    const id = BigInt(detail.category_id);
+    const storageId = BigInt(detail.storage_id);
+    const row = await this.prisma.categories.findUnique({
+      where: { id },
     });
-    return row ? (bigintToString(row) as unknown as Category) : null;
+    if (!row || row.storage_id !== storageId) {
+      return null;
+    }
+    return bigintToString(row) as unknown as Category;
   }
 
   @ResolveField(() => Suplier, { nullable: true })
@@ -66,13 +68,15 @@ export class DetailsResolver {
     if (!detail.suplier_id) {
       return null;
     }
-    const row = await this.prisma.supliers.findFirst({
-      where: {
-        id: BigInt(detail.suplier_id),
-        storage_id: BigInt(detail.storage_id),
-      },
+    const id = BigInt(detail.suplier_id);
+    const storageId = BigInt(detail.storage_id);
+    const row = await this.prisma.supliers.findUnique({
+      where: { id },
     });
-    return row ? (bigintToString(row) as unknown as Suplier) : null;
+    if (!row || row.storage_id !== storageId) {
+      return null;
+    }
+    return bigintToString(row) as unknown as Suplier;
   }
 
   @Query(() => DetailsListResult, { name: 'details' })

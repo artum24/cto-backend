@@ -25,9 +25,9 @@ export class ClientService {
     return clients.map(bigintToString);
   }
 
-  async findByClientId(company_id: bigint, id: number) {
+  async findByClientId(company_id: bigint, id: string) {
     const client = await this.prisma.clients.findFirst({
-      where: { company_id, id },
+      where: { company_id, id: BigInt(id) },
     });
     if (!client) {
       throw new Error('Client not found');

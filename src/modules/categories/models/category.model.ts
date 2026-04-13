@@ -14,8 +14,8 @@ export class Category {
   @Field(() => Boolean)
   archived!: boolean;
 
-  @Field(() => Int, { nullable: true })
-  count?: number | null;
+  @Field(() => Int, { nullable: true, name: 'count' })
+  partsCount?: number | null;
 
   @Field(() => Date, { name: 'createdAt' })
   created_at!: Date;
