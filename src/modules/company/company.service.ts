@@ -73,7 +73,7 @@ export class CompanyService {
   }
 
   /**
-   * After the company row exists, patch Supabase JWT app_metadata (companyId, role).
+   * After the company row exists, patch Supabase app_metadata (companyId, role).
    * Runs outside the DB transaction. Does not throw: onboarding should not fail on Auth hiccups.
    */
   private async syncSupabaseAppMetadataForNewCompany(
@@ -86,16 +86,10 @@ export class CompanyService {
       role: 'admin',
     };
 
-    const { data, error: getErr } =
+    const getRes =
       await this.supabaseAdmin.client.auth.admin.getUserById(authUserId);
 
-    if (getErr) {
-      this.logger.warn(
-        `createCompany: getUserById failed (${getErr.message}); will try minimal app_metadata patch`,
-      );
-    }
-
-    const fromServer = this.normalizeAppMetadata(data?.user?.app_metadata);
+    const fromServer = this.normalizeAppMetadata(getRes.data?.user?.app_metadata);
     const merged: Record<string, unknown> = { ...fromServer, ...minimal };
     let payload = this.toJsonSafeMetadata(merged);
 
@@ -103,24 +97,21 @@ export class CompanyService {
       payload = { ...minimal };
     }
 
-    let { error: updateErr } =
-      await this.supabaseAdmin.client.auth.admin.updateUserById(authUserId, {
-        app_metadata: payload,
-      });
+    let updateRes = await this.supabaseAdmin.client.auth.admin.updateUserById(
+      authUserId,
+      { app_metadata: payload },
+    );
 
-    if (updateErr) {
-      this.logger.warn(
-        `createCompany: updateUserById (merged) failed: ${updateErr.message}`,
+    if (updateRes.error) {
+      updateRes = await this.supabaseAdmin.client.auth.admin.updateUserById(
+        authUserId,
+        { app_metadata: minimal },
       );
-      ({ error: updateErr } =
-        await this.supabaseAdmin.client.auth.admin.updateUserById(authUserId, {
-          app_metadata: minimal,
-        }));
     }
 
-    if (updateErr) {
+    if (updateRes.error) {
       this.logger.warn(
-        `createCompany: updateUserById (minimal) failed: ${updateErr.message}. Company exists in DB; check SUPABASE_URL / service role.`,
+        'createCompany: Supabase user metadata not updated; company is in DB. Verify SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and that authUserId is the Supabase Auth user UUID.',
       );
     }
   }
@@ -262,7 +253,7 @@ export class CompanyService {
       });
 
       await this.syncSupabaseAppMetadataForNewCompany(
-        currentUser.authUser.id || currentUser.authUserId,
+        currentUser.authUserId,
         result.company.id,
       );
 
