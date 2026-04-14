@@ -31,7 +31,7 @@ type Company {
   addressRef: String
   city: String
   cityRef: String
-  companyType: Int
+  companyType: CompanyType
   createdAt: DateTime!
   houseNumber: String
   id: ID!
@@ -108,13 +108,6 @@ input CreateTaskInput {
   vehicle_id: ID!
 }
 
-input CreateVehicleHistoryInput {
-  distance: Int
-  service_id: ID!
-  status: String
-  task_id: ID!
-}
-
 input CreateVehicleForClientInput {
   vehicleDistance: Int
   vehicleMakeId: Int
@@ -123,9 +116,16 @@ input CreateVehicleForClientInput {
   vehicleModelName: String
   vehicleNumber: String
   vehicleTransmission: String
-  vehicleType: Int
+  vehicleType: VehicleType
   vehicleVinCode: String
   vehicleYear: Int!
+}
+
+input CreateVehicleHistoryInput {
+  distance: Int
+  service_id: ID!
+  status: String
+  task_id: ID!
 }
 
 input CreateVehicleInput {
@@ -138,7 +138,7 @@ input CreateVehicleInput {
   vehicleModelName: String
   vehicleNumber: String
   vehicleTransmission: String
-  vehicleType: Int
+  vehicleType: VehicleType
   vehicleVinCode: String
   vehicleYear: Int!
 }
@@ -150,6 +150,7 @@ scalar DateTime
 
 type Detail {
   archived: Boolean!
+  archivedAt: DateTime
   article: String
   buyPrice: Float
   category: Category
@@ -160,6 +161,7 @@ type Detail {
   minimumCount: Int
   name: String
   sellPrice: Float
+  status: DetailStatuses
   storageId: ID!
   suplier: Suplier
   suplier_id: ID
@@ -177,23 +179,44 @@ type DetailHistory {
   user: DetailHistoryUser
 }
 
+"""Possible detail history action types"""
+enum DetailHistoryActionType {
+  """detail arrival"""
+  ARRIVAL
+
+  """detail correction"""
+  CORRECTION
+
+  """detail outlay"""
+  OUTLAY
+}
+
 type DetailHistoryUser {
   email: String
   fullName: String
   id: ID!
 }
 
-enum DetailHistoryActionType {
-  ARRIVAL
-  CORRECTION
-  OUTLAY
+"""Possible detail statuses based on stock level"""
+enum DetailStatuses {
+  """Count meets or exceeds minimum"""
+  IN_STOCK
+
+  """Count is below minimum"""
+  LOW_STOCK
+
+  """Count is 0"""
+  OUT_OF_STOCK
 }
 
 input DetailsListInput {
+  archived: Boolean = false
   categoryId: String
   limit: Int = 25
   page: Int = 1
   search: String
+  status: DetailStatuses
+  suplierId: String
 }
 
 type DetailsListResult {
@@ -201,6 +224,11 @@ type DetailsListResult {
   limit: Int!
   page: Int!
   total: Int!
+}
+
+type FilteredVehiclesResult {
+  collection: [Vehicle!]!
+  metadata: VehiclesMetadata!
 }
 
 type Invitation {
@@ -214,6 +242,15 @@ type Invitation {
   role: UserRoles
   status: UserStatuses
   updatedAt: DateTime!
+}
+
+input InvitationCreateInput {
+  email: String!
+}
+
+type InvitationCreateOutput {
+  error: String
+  message: String!
 }
 
 type Invoice {
@@ -232,15 +269,10 @@ scalar JSON
 
 type Mutation {
   archiveCategory(id: ID!): Category!
-  archiveClient(id: String!): Client!
+  archiveClient(id: ID!): Client!
   archiveDetail(id: String!): Detail!
   archiveSuplier(id: String!): Suplier!
   archiveVehicle(id: String!): Vehicle!
-  deleteCategory(id: ID!): Boolean!
-  deleteClient(id: String!): Boolean!
-  deleteDetail(id: String!): Boolean!
-  deleteSuplier(id: String!): Boolean!
-  deleteVehicle(id: String!): Boolean!
   createCategory(input: CreateCategoryInput!): Category!
   createClient(input: CreateClientInput!): Client!
   createClientWithVehicles(input: CreateClientWithVehiclesInput!): Client!
@@ -249,7 +281,14 @@ type Mutation {
   createSuplier(input: CreateSuplierInput!): Suplier!
   createVehicle(input: CreateVehicleInput!): Vehicle!
   declineInvitation(invitationId: String!): Boolean!
+  deleteCategory(id: ID!): Boolean!
+  deleteClient(id: ID!): Boolean!
+  deleteDetail(id: String!): Boolean!
+  deleteSuplier(id: String!): Boolean!
+  deleteVehicle(id: String!): Boolean!
+  detailCountUpdate(count: Int!, id: String!): Detail!
   generateInvoice(taskId: ID!): Invoice!
+  invitationCreate(input: InvitationCreateInput!): InvitationCreateOutput!
   recordDetailMovement(input: RecordDetailMovementInput!): DetailHistory!
   serviceCreate(input: CreateServiceInput!): Service!
   serviceDelete(id: ID!): Service!
@@ -265,6 +304,7 @@ type Mutation {
   vehicleHistoryCreate(input: CreateVehicleHistoryInput!): VehicleHistory!
   vehicleHistoryDelete(id: ID!): VehicleHistory!
   vehicleHistoryUpdate(input: UpdateVehicleHistoryInput!): VehicleHistory!
+  vehicleUpdate(input: VehicleUpdateInput!): VehicleUpdateOutput!
 }
 
 type NovaPoshtaAddress {
@@ -295,6 +335,7 @@ enum PhoneValidationValues {
 }
 
 type Query {
+  acceptInvite(id: ID!): User!
   categories(archived: Boolean): [Category!]!
   client(id: ID!): Client!
   clients: [Client!]!
@@ -304,6 +345,7 @@ type Query {
   detail(id: String!): Detail!
   detailHistories(detailId: ID, taskId: ID): [DetailHistory!]!
   details(input: DetailsListInput): DetailsListResult!
+  filteredVehicles(limit: Int, orderBy: OrderByInput, page: Int, search: String): FilteredVehiclesResult!
   getNpAddress(cityRef: String!, streetName: String!): [NovaPoshtaAddress!]!
   getNpCity(searchTerm: String!): [NovaPoshtaCity!]!
   invoice(taskId: ID!): Invoice
@@ -319,14 +361,14 @@ type Query {
   vehicleHistories: [VehicleHistory!]!
   vehicleHistory(id: ID!): VehicleHistory!
   vehicleMakes: [VehicleMake!]!
-  vehicleMakesByType(typeId: Int!): [VehicleMake!]!
+  vehicleMakesByType(vehicleType: VehicleType!): [VehicleMake!]!
   vehicleModels: [VehicleModel!]!
-  vehicleModelsByMake(makeId: Int!): [VehicleModel!]!
+  vehicleModelsByMake(vehicleMakeId: Int!, vehicleType: VehicleType!): [VehicleModel!]!
   vehicles(input: VehiclesInput!): [Vehicle!]!
 }
 
 input RecordDetailMovementInput {
-  action_type: Int!
+  action_type: DetailHistoryActionType!
   comment: String
   count_diff: Int!
   detailId: String!
@@ -454,23 +496,9 @@ input UpdateVehicleHistoryInput {
   task_id: ID
 }
 
-input UpdateVehicleInput {
-  id: String!
-  vehicle_distance: Int
-  vehicle_make_id: Int
-  vehicle_make_name: String
-  vehicle_model_id: Int
-  vehicle_model_name: String
-  vehicle_number: String
-  vehicle_transmission: String
-  vehicle_type: Int
-  vehicle_vin_code: String
-  vehicle_year: Int
-}
-
 type User {
   authUserId: ID
-  company: Company!
+  company: Company
   companyId: ID
   createdAt: DateTime!
   email: String
@@ -484,19 +512,27 @@ type User {
 
 """Possible user roles"""
 enum UserRoles {
+  """Admin role"""
   ADMIN
+
+  """User role"""
   USER
 }
 
 """Possible user statuses"""
 enum UserStatuses {
+  """Active user"""
   ACTIVE
+
+  """Invited user"""
   INVITED
+
+  """Removed user"""
   REMOVED
 }
 
 type Vehicle {
-  client: Client!
+  client: Client
   createdAt: DateTime!
   id: ID!
   updatedAt: DateTime!
@@ -507,7 +543,7 @@ type Vehicle {
   vehicleModelName: String
   vehicleNumber: String
   vehicleTransmission: String
-  vehicleType: Int
+  vehicleType: VehicleType
   vehicleVinCode: String
   vehicleYear: Int
 }
@@ -528,7 +564,7 @@ type VehicleMake {
   updatedAt: DateTime!
   vehicleMakeId: Int!
   vehicleMakeName: String!
-  vehicleType: Int!
+  vehicleType: VehicleType!
 }
 
 type VehicleModel {
@@ -546,9 +582,65 @@ input VehicleOrderInput {
   vehicle_year: OrderByValues
 }
 
+"""Possible vehicle types"""
+enum VehicleType {
+  """bus type"""
+  BUS
+
+  """passenger car type"""
+  CAR
+
+  """incomplete vehicle type"""
+  INCOMPLETE
+
+  """lsv type"""
+  LSV
+
+  """motorcycle type"""
+  MOTO
+
+  """mpv type"""
+  MPV
+
+  """off-road vehicle type"""
+  OFF_ROAD
+
+  """trailer type"""
+  TRAILER
+
+  """truck type"""
+  TRUCK
+}
+
+input VehicleUpdateInput {
+  id: String!
+  vehicle_distance: Int
+  vehicle_make_id: Int
+  vehicle_make_name: String
+  vehicle_model_id: Int
+  vehicle_model_name: String
+  vehicle_number: String
+  vehicle_transmission: String
+  vehicle_type: VehicleType
+  vehicle_vin_code: String
+  vehicle_year: Int
+}
+
+type VehicleUpdateOutput {
+  client: Client
+  vehicle: Vehicle
+}
+
 input VehiclesInput {
   limit: Int = 25
   orderBy: OrderByInput
   page: Int = 1
   search: String
+}
+
+type VehiclesMetadata {
+  currentPage: Int!
+  limitValue: Int!
+  totalCount: Int!
+  totalPages: Int!
 }

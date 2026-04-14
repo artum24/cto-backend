@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
@@ -9,8 +9,37 @@ import { SupabaseAdminClient } from '@/auth/supabase.client';
 import { UserRoles } from '@/modules/user/enums/user-roles.enum';
 import { UserStatuses } from '@/modules/user/enums/user-statuses.enum';
 
+/** Default warehouse categories for a new company storage (seed). */
+const DEFAULT_CATEGORY_NAMES = [
+  'Масла й рідини',
+  'Фільтри',
+  'Гальмівна система',
+  'Охолодження',
+  'Освітлення',
+  'Ремені/ролики',
+  'Акумулятори',
+  'Шини/диски',
+  'Трансмісія',
+  'Підвіска/кермування',
+  'Електрика',
+  'Кузов/салон',
+  'Інструмент/витратні',
+  'Запалювання/свічки',
+  'Система вихлопу',
+  'Електроніка авто',
+  'Скло/дзеркала',
+  'Kліматична система',
+  'Паливна система',
+  'ГБО/газова система',
+  'Хімія/автокосметика',
+  'Кріплення/болти/гайки',
+  'Аксесуари салону',
+] as const;
+
 @Injectable()
 export class CompanyService {
+  private readonly logger = new Logger(CompanyService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly supabaseAdmin: SupabaseAdminClient,
@@ -19,13 +48,13 @@ export class CompanyService {
   private normalizeAppMetadata(value: unknown): Record<string, unknown> {
     if (!value) return {};
     if (typeof value === 'object' && !Array.isArray(value)) {
-      return value as Record<string, unknown>;
+      return { ...(value as Record<string, unknown>) };
     }
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value) as unknown;
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          return parsed as Record<string, unknown>;
+          return { ...(parsed as Record<string, unknown>) };
         }
       } catch {
         return {};
@@ -34,7 +63,7 @@ export class CompanyService {
     return {};
   }
 
-  /** Only JSON-serializable plain values — avoids broken GoTrue / fetch payloads. */
+  /** Drops non-JSON-serializable fields (safe for GoTrue request bodies). */
   private toJsonSafeMetadata(meta: Record<string, unknown>): Record<string, unknown> {
     try {
       return JSON.parse(JSON.stringify(meta)) as Record<string, unknown>;
@@ -44,29 +73,35 @@ export class CompanyService {
   }
 
   /**
-   * Sync Supabase app_metadata after company exists in DB (outside the DB transaction).
-   * Does not throw: company creation already succeeded; misconfigured Supabase should not block onboarding.
+   * After the company row exists, patch Supabase JWT app_metadata (companyId, role).
+   * Runs outside the DB transaction. Does not throw: onboarding should not fail on Auth hiccups.
    */
   private async syncSupabaseAppMetadataForNewCompany(
     authUserId: string,
     companyId: bigint,
   ): Promise<void> {
     const companyIdStr = companyId.toString();
-    const minimal = { companyId: companyIdStr, role: 'admin' };
+    const minimal: Record<string, string> = {
+      companyId: companyIdStr,
+      role: 'admin',
+    };
 
     const { data, error: getErr } =
       await this.supabaseAdmin.client.auth.admin.getUserById(authUserId);
+
     if (getErr) {
-      console.warn(
-        `[createCompany] getUserById failed (${getErr.message}); retrying metadata patch with minimal payload`,
+      this.logger.warn(
+        `createCompany: getUserById failed (${getErr.message}); will try minimal app_metadata patch`,
       );
     }
 
     const fromServer = this.normalizeAppMetadata(data?.user?.app_metadata);
-    const merged = { ...fromServer, ...minimal };
-    const full = this.toJsonSafeMetadata(merged);
-    const payload =
-      Object.keys(full).length >= Object.keys(minimal).length ? full : minimal;
+    const merged: Record<string, unknown> = { ...fromServer, ...minimal };
+    let payload = this.toJsonSafeMetadata(merged);
+
+    if (Object.keys(payload).length < Object.keys(minimal).length) {
+      payload = { ...minimal };
+    }
 
     let { error: updateErr } =
       await this.supabaseAdmin.client.auth.admin.updateUserById(authUserId, {
@@ -74,8 +109,8 @@ export class CompanyService {
       });
 
     if (updateErr) {
-      console.warn(
-        `[createCompany] updateUserById (merged metadata) failed: ${updateErr.message}`,
+      this.logger.warn(
+        `createCompany: updateUserById (merged) failed: ${updateErr.message}`,
       );
       ({ error: updateErr } =
         await this.supabaseAdmin.client.auth.admin.updateUserById(authUserId, {
@@ -84,8 +119,8 @@ export class CompanyService {
     }
 
     if (updateErr) {
-      console.warn(
-        `[createCompany] updateUserById (minimal) failed: ${updateErr.message}. Company is in DB; check SUPABASE_URL / service role and Auth logs.`,
+      this.logger.warn(
+        `createCompany: updateUserById (minimal) failed: ${updateErr.message}. Company exists in DB; check SUPABASE_URL / service role.`,
       );
     }
   }
@@ -97,13 +132,11 @@ export class CompanyService {
   }
 
   async findCompanyMembers(id: bigint) {
-    const users = await this.prisma.users.findMany({
-      where: { company_id: id },
-    });
-    const invitations = await this.prisma.invitations.findMany({
-      where: { company_id: id },
-    });
-    return [...users.map(bigintToString), ...invitations];
+    const [users, invitations] = await Promise.all([
+      this.prisma.users.findMany({ where: { company_id: id } }),
+      this.prisma.invitations.findMany({ where: { company_id: id } }),
+    ]);
+    return [...users.map(bigintToString), ...invitations.map(bigintToString)];
   }
 
   async update(companyId: bigint, input: UpdateCompanyInput) {
@@ -121,7 +154,6 @@ export class CompanyService {
       ...(input.address !== undefined && { address: input.address ?? null }),
       ...(input.address_ref !== undefined && { address_ref: input.address_ref ?? null }),
       ...(input.house_number !== undefined && { house_number: input.house_number ?? null }),
-      // CompanyType enum values are integers (CTO=1, TIRE_SERVICE=2, CAR_WASH=3)
       ...(input.company_type !== undefined && {
         company_type: input.company_type ?? null,
       }),
@@ -136,18 +168,17 @@ export class CompanyService {
 
   async inviteMember(companyId: bigint, email: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    const existingUser = await this.prisma.users.findFirst({
-      where: { email: normalizedEmail, company_id: companyId },
-    });
+    const [existingUser, existingInvitation] = await Promise.all([
+      this.prisma.users.findFirst({
+        where: { email: normalizedEmail, company_id: companyId },
+      }),
+      this.prisma.invitations.findFirst({
+        where: { company_id: companyId, email: normalizedEmail },
+      }),
+    ]);
     if (existingUser) {
       throw new Error('This user is already a member of your company.');
     }
-    const existingInvitation = await this.prisma.invitations.findFirst({
-      where: {
-        company_id: companyId,
-        email: normalizedEmail,
-      },
-    });
     if (existingInvitation) {
       throw new Error('This email has already been invited.');
     }
@@ -164,7 +195,13 @@ export class CompanyService {
   }
 
   async create(companyInput: CompanyInput, currentUser: AuthContextUser) {
-    // CompanyType enum values are integers (CTO=1, TIRE_SERVICE=2, CAR_WASH=3)
+    const email = currentUser.authUser.email?.trim().toLowerCase();
+    if (!email) {
+      throw new Error(
+        'Authenticated user has no email; cannot create or link company profile.',
+      );
+    }
+
     const companyData = {
       title: companyInput.title,
       company_type: companyInput.companyType,
@@ -177,69 +214,46 @@ export class CompanyService {
 
     try {
       const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
+        const now = new Date();
+
         const company = await prisma.companies.create({
-          data: { ...companyData, created_at: new Date(), updated_at: new Date() },
+          data: { ...companyData, created_at: now, updated_at: now },
         });
 
         const storage = await prisma.storages.create({
           data: {
             name: company.title,
             company_id: company.id,
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: now,
+            updated_at: now,
           },
         });
 
-        const BASE_CATEGORIES = [
-          'Масла й рідини',
-          'Фільтри',
-          'Гальмівна система',
-          'Охолодження',
-          'Освітлення',
-          'Ремені/ролики',
-          'Акумулятори',
-          'Шини/диски',
-          'Трансмісія',
-          'Підвіска/кермування',
-          'Електрика',
-          'Кузов/салон',
-          'Інструмент/витратні',
-          'Запалювання/свічки',
-          'Система вихлопу',
-          'Електроніка авто',
-          'Скло/дзеркала',
-          'Kліматична система',
-          'Паливна система',
-          'ГБО/газова система',
-          'Хімія/автокосметика',
-          'Кріплення/болти/гайки',
-          'Аксесуари салону',
-        ];
-
         await prisma.categories.createMany({
-          data: BASE_CATEGORIES.map((name) => ({
+          data: DEFAULT_CATEGORY_NAMES.map((name) => ({
             name,
             storage_id: storage.id,
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: now,
+            updated_at: now,
           })),
         });
 
         const user = await prisma.users.upsert({
-          where: { email: currentUser.authUser.email as string },
+          where: { email },
           update: {
             company_id: company.id,
             role: UserRoles.ADMIN,
             status: UserStatuses.ACTIVE,
+            updated_at: now,
           },
           create: {
             auth_user_id: currentUser.authUserId,
-            email: currentUser.authUser.email,
+            email,
             company_id: company.id,
             role: UserRoles.ADMIN,
             status: UserStatuses.ACTIVE,
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: now,
+            updated_at: now,
           },
           include: { companies: true },
         });
@@ -248,7 +262,7 @@ export class CompanyService {
       });
 
       await this.syncSupabaseAppMetadataForNewCompany(
-        currentUser.authUserId,
+        currentUser.authUser.id || currentUser.authUserId,
         result.company.id,
       );
 
@@ -261,7 +275,7 @@ export class CompanyService {
       };
     } catch (e) {
       if (e instanceof Error) {
-        throw new Error(e.message);
+        throw e;
       }
       throw new Error('An unknown error occurred during company creation');
     }
