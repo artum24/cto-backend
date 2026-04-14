@@ -34,6 +34,62 @@ export class CompanyService {
     return {};
   }
 
+  /** Only JSON-serializable plain values — avoids broken GoTrue / fetch payloads. */
+  private toJsonSafeMetadata(meta: Record<string, unknown>): Record<string, unknown> {
+    try {
+      return JSON.parse(JSON.stringify(meta)) as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * Sync Supabase app_metadata after company exists in DB (outside the DB transaction).
+   * Does not throw: company creation already succeeded; misconfigured Supabase should not block onboarding.
+   */
+  private async syncSupabaseAppMetadataForNewCompany(
+    authUserId: string,
+    companyId: bigint,
+  ): Promise<void> {
+    const companyIdStr = companyId.toString();
+    const minimal = { companyId: companyIdStr, role: 'admin' };
+
+    const { data, error: getErr } =
+      await this.supabaseAdmin.client.auth.admin.getUserById(authUserId);
+    if (getErr) {
+      console.warn(
+        `[createCompany] getUserById failed (${getErr.message}); retrying metadata patch with minimal payload`,
+      );
+    }
+
+    const fromServer = this.normalizeAppMetadata(data?.user?.app_metadata);
+    const merged = { ...fromServer, ...minimal };
+    const full = this.toJsonSafeMetadata(merged);
+    const payload =
+      Object.keys(full).length >= Object.keys(minimal).length ? full : minimal;
+
+    let { error: updateErr } =
+      await this.supabaseAdmin.client.auth.admin.updateUserById(authUserId, {
+        app_metadata: payload,
+      });
+
+    if (updateErr) {
+      console.warn(
+        `[createCompany] updateUserById (merged metadata) failed: ${updateErr.message}`,
+      );
+      ({ error: updateErr } =
+        await this.supabaseAdmin.client.auth.admin.updateUserById(authUserId, {
+          app_metadata: minimal,
+        }));
+    }
+
+    if (updateErr) {
+      console.warn(
+        `[createCompany] updateUserById (minimal) failed: ${updateErr.message}. Company is in DB; check SUPABASE_URL / service role and Auth logs.`,
+      );
+    }
+  }
+
   async findById(id: bigint) {
     const company = await this.prisma.companies.findUnique({ where: { id } });
     if (!company) return null;
@@ -188,27 +244,13 @@ export class CompanyService {
           include: { companies: true },
         });
 
-        const appMetadata = this.normalizeAppMetadata(
-          (currentUser.authUser as { app_metadata?: unknown })?.app_metadata,
-        );
-        const { error } =
-          await this.supabaseAdmin.client.auth.admin.updateUserById(
-            currentUser.authUserId,
-            {
-              app_metadata: {
-                ...appMetadata,
-                companyId: company.id.toString(),
-                role: 'admin',
-              },
-            },
-          );
-
-        if (error) {
-          throw new Error(`Failed to update Supabase user: ${error.message}`);
-        }
-
         return { company, user };
       });
+
+      await this.syncSupabaseAppMetadataForNewCompany(
+        currentUser.authUserId,
+        result.company.id,
+      );
 
       return {
         company: bigintToString(result.company),
