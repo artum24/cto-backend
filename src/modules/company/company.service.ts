@@ -16,6 +16,24 @@ export class CompanyService {
     private readonly supabaseAdmin: SupabaseAdminClient,
   ) {}
 
+  private normalizeAppMetadata(value: unknown): Record<string, unknown> {
+    if (!value) return {};
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      return value as Record<string, unknown>;
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value) as unknown;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed as Record<string, unknown>;
+        }
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  }
+
   async findById(id: bigint) {
     const company = await this.prisma.companies.findUnique({ where: { id } });
     if (!company) return null;
@@ -170,9 +188,9 @@ export class CompanyService {
           include: { companies: true },
         });
 
-        const appMetadata = (
-          currentUser.authUser as { app_metadata?: Record<string, any> }
-        )?.app_metadata;
+        const appMetadata = this.normalizeAppMetadata(
+          (currentUser.authUser as { app_metadata?: unknown })?.app_metadata,
+        );
         const { error } =
           await this.supabaseAdmin.client.auth.admin.updateUserById(
             currentUser.authUserId,
