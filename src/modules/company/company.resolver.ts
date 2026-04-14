@@ -10,7 +10,6 @@ import { CompanyMemberUnion } from '@/modules/company/company-member.union';
 import { CompanyInput } from '@/modules/company/inputs/company.input';
 import { UpdateCompanyInput } from '@/modules/company/inputs/update-company.input';
 import { InvitationCreateInput } from '@/modules/company/inputs/invitation-create.input';
-import { CompanyCreateOutput } from '@/modules/company/models/company-create.output';
 import { UserRoles } from '@/modules/user/enums/user-roles.enum';
 import { InvitationCreateOutput } from '@/modules/company/models/invitation-create.output';
 
@@ -36,12 +35,13 @@ export class CompanyResolver {
 
   @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
-  @Mutation(() => CompanyCreateOutput, { name: 'createCompany' })
+  @Mutation(() => Company, { name: 'createCompany' })
   async createCompany(
     @Args('companyInput') companyInput: CompanyInput,
     @CurrentUser() currentUser: AuthContextUser,
   ) {
-    return this.companyService.create(companyInput, currentUser);
+    const result = await this.companyService.create(companyInput, currentUser);
+    return result.company;
   }
 
   @UseGuards(SupabaseAuthGuard)
