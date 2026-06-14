@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { XlsxImportPayload } from './upload.service';
 import { XLSX_IMPORT_EVENT } from './upload.service';
+import { normalizePhone } from '@/common/utils/phone.util';
 
 interface DataError {
   id: number;
@@ -170,7 +171,6 @@ export class XlsxProcessorService {
   }
 
   private normalizePhone(phone: string): string {
-    // Same logic as Rails ModelValidations.normalize_phone
-    return phone.replace(/\D/g, '').replace(/^8/, '7');
+    return normalizePhone(phone);
   }
 }

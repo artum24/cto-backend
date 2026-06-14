@@ -1,10 +1,11 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsOptional, IsString, Length, Matches } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Length, Matches, MaxLength } from 'class-validator';
 
 @InputType()
 export class UpdateClientInput {
   @Field(() => ID)
   @IsString()
+  @IsNotEmpty()
   id: string;
 
   @Field(() => String, { nullable: true })
@@ -16,11 +17,12 @@ export class UpdateClientInput {
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
-  @Length(10, 13, {
-    message: 'Phone must be 10–13 digits (optionally with country code)',
-  })
+  @MaxLength(20, { message: 'Phone number is too long' })
   @Matches(/^[0-9+\s\-()]+$/, {
     message: 'Phone can only contain digits, spaces, +, -, (, )',
+  })
+  @Matches(/(?:.*\d){10}/, {
+    message: 'Phone must contain at least 10 digits',
   })
   phone?: string | null;
 }

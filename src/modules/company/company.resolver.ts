@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, ForbiddenException } from '@nestjs/common';
 import { Company } from '@/modules/company/models/company.model';
 import { CompanyService } from '@/modules/company/company.service';
 import { AllowUnregisteredAppUser } from '@/auth/allow-unregistered-app-user.decorator';
@@ -10,7 +10,6 @@ import { CompanyMemberUnion } from '@/modules/company/company-member.union';
 import { CompanyInput } from '@/modules/company/inputs/company.input';
 import { UpdateCompanyInput } from '@/modules/company/inputs/update-company.input';
 import { InvitationCreateInput } from '@/modules/company/inputs/invitation-create.input';
-import { UserRoles } from '@/modules/user/enums/user-roles.enum';
 import { InvitationCreateOutput } from '@/modules/company/models/invitation-create.output';
 
 @Resolver(() => Company)
@@ -18,7 +17,7 @@ export class CompanyResolver {
   constructor(private readonly companyService: CompanyService) {}
 
   @UseGuards(SupabaseAuthGuard)
-  @Query(() => Company, { name: 'currentUserCompany' })
+  @Query(() => Company, { name: 'currentUserCompany', nullable: true })
   currentUserCompany(@CurrentUser() current?: AuthContextUser) {
     const u = current?.user;
     if (!u?.company_id) return null;
@@ -29,7 +28,7 @@ export class CompanyResolver {
   @Query(() => [CompanyMemberUnion], { name: 'companyMembers' })
   companyMembers(@CurrentUser() current?: AuthContextUser) {
     const u = current?.user;
-    if (!u?.company_id) return null;
+    if (!u?.company_id) return [];
     return this.companyService.findCompanyMembers(BigInt(u.company_id));
   }
 
@@ -46,13 +45,13 @@ export class CompanyResolver {
 
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Company, { name: 'updateCompany' })
-  async updateCompany(
+  updateCompany(
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: UpdateCompanyInput,
   ) {
     const u = current.user;
     if (!u?.company_id) {
-      throw new Error('User is not associated with a company.');
+      throw new ForbiddenException('User is not associated with a company.');
     }
     return this.companyService.update(BigInt(u.company_id), input);
   }
@@ -65,12 +64,9 @@ export class CompanyResolver {
   ): Promise<InvitationCreateOutput> {
     const u = current.user;
     if (!u?.company_id) {
-      throw new Error('User is not associated with a company.');
+      throw new ForbiddenException('User is not associated with a company.');
     }
-    if (u.role !== UserRoles.ADMIN) {
-      throw new Error('You have no permission for inviting users.');
-    }
-    await this.companyService.inviteMember(BigInt(u.company_id), input.email);
+    await this.companyService.inviteMember(BigInt(u.company_id), input.email, current);
     return { message: 'Invitation sent', error: null };
   }
 }

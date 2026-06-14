@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { PhoneValidationValues } from '@/common/enums/phone-validation-values.enum';
@@ -7,9 +7,7 @@ import { CreateClientWithVehiclesInput } from './inputs/create-client-with-vehic
 import { UpdateClientInput } from './inputs/update-client.input';
 import { buildVehicleUncheckedCreate } from '@/modules/vehicle/vehicle-create-data';
 import type { VehicleCreateFields } from '@/modules/vehicle/vehicle-create-data';
-
-const normalizePhone = (phone: string) =>
-  phone.replace(/[^0-9]/g, '').slice(-10);
+import { normalizePhone } from '@/common/utils/phone.util';
 
 @Injectable()
 export class ClientService {
@@ -30,7 +28,7 @@ export class ClientService {
       where: { company_id, id: BigInt(id) },
     });
     if (!client) {
-      throw new Error('Client not found');
+      throw new NotFoundException('Client not found');
     }
     return bigintToString(client);
   }
@@ -56,7 +54,7 @@ export class ClientService {
     const phone = normalizePhone(input.phone);
     const validation = await this.validatePhone(companyId, input.phone);
     if (validation === PhoneValidationValues.INVALID) {
-      throw new Error(
+      throw new BadRequestException(
         'A client with this phone number already exists in your company.',
       );
     }
@@ -77,7 +75,7 @@ export class ClientService {
     const phone = normalizePhone(input.client.phone);
     const validation = await this.validatePhone(companyId, input.client.phone);
     if (validation === PhoneValidationValues.INVALID) {
-      throw new Error(
+      throw new BadRequestException(
         'A client with this phone number already exists in your company.',
       );
     }
@@ -86,7 +84,7 @@ export class ClientService {
       .map((v) => v.vehicleNumber)
       .filter((n): n is string => n != null && n !== '');
     if (new Set(plateNumbers).size !== plateNumbers.length) {
-      throw new Error(
+      throw new BadRequestException(
         'Duplicate vehicle registration numbers in the same request.',
       );
     }
@@ -105,12 +103,16 @@ export class ClientService {
 
       for (const v of input.vehicles) {
         if (v.vehicleNumber != null && v.vehicleNumber !== '') {
+          // Scope uniqueness check to this company (BUG-1 fix)
           const existing = await tx.vehicles.findFirst({
-            where: { vehicle_number: v.vehicleNumber },
+            where: {
+              vehicle_number: v.vehicleNumber,
+              clients: { company_id: companyId },
+            },
           });
           if (existing) {
-            throw new Error(
-              'A vehicle with this registration number already exists.',
+            throw new BadRequestException(
+              'A vehicle with this registration number already exists in your company.',
             );
           }
         }
@@ -135,7 +137,7 @@ export class ClientService {
       where: { id, company_id: companyId },
     });
     if (!existing) {
-      throw new Error('Client not found');
+      throw new NotFoundException('Client not found');
     }
     const data: { name?: string | null; phone?: string; updated_at: Date } = {
       updated_at: new Date(),
@@ -151,7 +153,7 @@ export class ClientService {
         },
       });
       if (other) {
-        throw new Error(
+        throw new BadRequestException(
           'Another client in your company already has this phone number.',
         );
       }
@@ -170,7 +172,7 @@ export class ClientService {
       where: { id: idBigInt, company_id: companyId },
     });
     if (!existing) {
-      throw new Error('Client not found');
+      throw new NotFoundException('Client not found');
     }
     const client = await this.prisma.clients.update({
       where: { id: idBigInt },
@@ -185,13 +187,13 @@ export class ClientService {
       where: { id: idBigInt, company_id: companyId },
     });
     if (!existing) {
-      throw new Error('Client not found');
+      throw new NotFoundException('Client not found');
     }
     const vehiclesCount = await this.prisma.vehicles.count({
       where: { client_id: idBigInt },
     });
     if (vehiclesCount > 0) {
-      throw new Error(
+      throw new BadRequestException(
         `Cannot delete client: ${vehiclesCount} vehicle(s) are still linked. Remove or reassign them first.`,
       );
     }

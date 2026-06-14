@@ -8,7 +8,11 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { VehicleType } from '../enums/vehicle-type.enum';
+
+const emptyToNull = ({ value }: { value: unknown }) =>
+  value === '' ? null : value;
 
 @InputType()
 export class CreateVehicleInput {
@@ -29,18 +33,21 @@ export class CreateVehicleInput {
   vehicleDistance?: number | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 50)
   vehicleNumber?: string | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 50)
   vehicleVinCode?: string | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 50)
@@ -62,12 +69,14 @@ export class CreateVehicleInput {
   vehicleModelId?: number | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 255)
   vehicleMakeName?: string | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 255)

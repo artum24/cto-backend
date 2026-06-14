@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
@@ -124,10 +124,24 @@ export class CompanyService {
 
   async findCompanyMembers(id: bigint) {
     const [users, invitations] = await Promise.all([
-      this.prisma.users.findMany({ where: { company_id: id } }),
-      this.prisma.invitations.findMany({ where: { company_id: id } }),
+      this.prisma.users.findMany({
+        where: { company_id: id },
+        include: { companies: true },
+      }),
+      this.prisma.invitations.findMany({
+        where: { company_id: id },
+        include: { companies: true },
+      }),
     ]);
-    return [...users.map(bigintToString), ...invitations.map(bigintToString)];
+    const mappedUsers = users.map(({ companies, ...user }) => ({
+      ...bigintToString(user),
+      company: companies ? bigintToString(companies) : null,
+    }));
+    const mappedInvitations = invitations.map(({ companies, ...invitation }) => ({
+      ...bigintToString(invitation),
+      company: bigintToString(companies),
+    }));
+    return [...mappedUsers, ...mappedInvitations];
   }
 
   async update(companyId: bigint, input: UpdateCompanyInput) {
@@ -135,7 +149,7 @@ export class CompanyService {
       where: { id: companyId },
     });
     if (!company) {
-      throw new Error('Company not found.');
+      throw new NotFoundException('Company not found.');
     }
     const data: Prisma.companiesUpdateInput = {
       updated_at: new Date(),
@@ -157,7 +171,10 @@ export class CompanyService {
     return bigintToString(updated);
   }
 
-  async inviteMember(companyId: bigint, email: string) {
+  async inviteMember(companyId: bigint, email: string, currentUser: AuthContextUser) {
+    if (currentUser.user?.role !== UserRoles.ADMIN) {
+      throw new ForbiddenException('Only admins can invite members.');
+    }
     const normalizedEmail = email.trim().toLowerCase();
     const [existingUser, existingInvitation] = await Promise.all([
       this.prisma.users.findFirst({
@@ -168,10 +185,10 @@ export class CompanyService {
       }),
     ]);
     if (existingUser) {
-      throw new Error('This user is already a member of your company.');
+      throw new BadRequestException('This user is already a member of your company.');
     }
     if (existingInvitation) {
-      throw new Error('This email has already been invited.');
+      throw new BadRequestException('This email has already been invited.');
     }
     const now = new Date();
     const invitation = await this.prisma.invitations.create({
@@ -188,7 +205,7 @@ export class CompanyService {
   async create(companyInput: CompanyInput, currentUser: AuthContextUser) {
     const email = currentUser.authUser.email?.trim().toLowerCase();
     if (!email) {
-      throw new Error(
+      throw new BadRequestException(
         'Authenticated user has no email; cannot create or link company profile.',
       );
     }
@@ -265,10 +282,10 @@ export class CompanyService {
         },
       };
     } catch (e) {
-      if (e instanceof Error) {
+      if (e instanceof BadRequestException || e instanceof ForbiddenException || e instanceof NotFoundException) {
         throw e;
       }
-      throw new Error('An unknown error occurred during company creation');
+      throw new BadRequestException('An unknown error occurred during company creation');
     }
   }
 }

@@ -57,7 +57,9 @@ export class VehicleService {
   }
 
   async findAndFilter(companyId: bigint, input: VehiclesInput) {
-    const { search, orderBy, page = 1, limit = 25 } = input;
+    const { search, orderBy } = input;
+    const page = Math.max(1, input.page ?? 1);
+    const limit = Math.min(100, Math.max(1, input.limit ?? 25));
     const where = this.buildVehicleWhere(companyId, search);
     const orderByClause = this.buildOrderByClause(orderBy);
 
@@ -80,8 +82,8 @@ export class VehicleService {
     companyId: bigint,
     opts: { page?: number | null; limit?: number | null; search?: string | null; orderBy?: VehiclesInput['orderBy'] },
   ) {
-    const page = opts.page ?? 1;
-    const limit = opts.limit ?? 25;
+    const page = Math.max(1, opts.page ?? 1);
+    const limit = Math.min(100, Math.max(1, opts.limit ?? 25));
     const where = this.buildVehicleWhere(companyId, opts.search);
     const orderByClause = this.buildOrderByClause(opts.orderBy);
 
@@ -207,16 +209,34 @@ export class VehicleService {
     if (input.vehicle_type !== undefined)
       data.vehicle_type = input.vehicle_type ?? null;
     if (input.vehicle_make_id !== undefined) {
-      data.vehicle_makes =
-        input.vehicle_make_id != null
-          ? { connect: { vehicle_make_id: input.vehicle_make_id } }
-          : { disconnect: true };
+      if (input.vehicle_make_id != null) {
+        data.vehicle_makes = { connect: { vehicle_make_id: input.vehicle_make_id } };
+        // Sync denormalized name unless caller overrides it explicitly
+        if (input.vehicle_make_name === undefined) {
+          const make = await this.prisma.vehicle_makes.findUnique({
+            where: { vehicle_make_id: input.vehicle_make_id },
+          });
+          data.vehicle_make_name = make?.vehicle_make_name ?? null;
+        }
+      } else {
+        data.vehicle_makes = { disconnect: true };
+        if (input.vehicle_make_name === undefined) data.vehicle_make_name = null;
+      }
     }
     if (input.vehicle_model_id !== undefined) {
-      data.vehicle_models =
-        input.vehicle_model_id != null
-          ? { connect: { vehicle_model_id: input.vehicle_model_id } }
-          : { disconnect: true };
+      if (input.vehicle_model_id != null) {
+        data.vehicle_models = { connect: { vehicle_model_id: input.vehicle_model_id } };
+        // Sync denormalized name unless caller overrides it explicitly
+        if (input.vehicle_model_name === undefined) {
+          const model = await this.prisma.vehicle_models.findUnique({
+            where: { vehicle_model_id: input.vehicle_model_id },
+          });
+          data.vehicle_model_name = model?.vehicle_model_name ?? null;
+        }
+      } else {
+        data.vehicle_models = { disconnect: true };
+        if (input.vehicle_model_name === undefined) data.vehicle_model_name = null;
+      }
     }
     if (input.vehicle_make_name !== undefined)
       data.vehicle_make_name = input.vehicle_make_name ?? null;

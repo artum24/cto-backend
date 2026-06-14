@@ -8,7 +8,11 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { VehicleType } from '../enums/vehicle-type.enum';
+
+const emptyToNull = ({ value }: { value: unknown }) =>
+  value === '' ? null : value;
 
 /** Same fields as CreateVehicleInput except clientId (set after client is created). */
 @InputType()
@@ -26,18 +30,21 @@ export class CreateVehicleForClientInput {
   vehicleDistance?: number | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 50)
   vehicleNumber?: string | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 50)
   vehicleVinCode?: string | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 50)
@@ -59,12 +66,14 @@ export class CreateVehicleForClientInput {
   vehicleModelId?: number | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 255)
   vehicleMakeName?: string | null;
 
   @Field(() => String, { nullable: true })
+  @Transform(emptyToNull)
   @IsOptional()
   @IsString()
   @Length(1, 255)
