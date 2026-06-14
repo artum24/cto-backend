@@ -17,80 +17,44 @@ import { User } from '@/modules/user/models/user.model';
 import { UserService } from '@/modules/user/user.service';
 import { Invitation } from '@/modules/company/models/invitation.model';
 import { Company } from '@/modules/company/models/company.model';
-import { SupabaseAdminClient } from '@/auth/supabase.client';
-import { PrismaService } from '@/prisma/prisma.service';
-import { bigintToString } from '@/common/mappers/bigint.mapper';
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
-import { Request, Response } from 'express';
 
 type GqlContext = {
-  req: Request;
-  res: Response;
   supabaseAuthUserById?: Map<string, Promise<SupabaseAuthUser | null>>;
 };
 
-function stringFromUserMetadata(
+function extractMetaField(
   meta: Record<string, unknown> | null | undefined,
   keys: string[],
 ): string | null {
   if (!meta) return null;
   for (const key of keys) {
     const v = meta[key];
-    if (typeof v === 'string' && v.trim() !== '') return v.trim();
+    if (typeof v === 'string' && v.trim()) return v.trim();
   }
   return null;
 }
 
-async function getCachedSupabaseAuthUser(
-  supabaseAdmin: SupabaseAdminClient,
-  cache: Map<string, Promise<SupabaseAuthUser | null>> | undefined,
-  authUserId: string,
-): Promise<SupabaseAuthUser | null> {
-  if (!cache) {
-    const { data, error } =
-      await supabaseAdmin.client.auth.admin.getUserById(authUserId);
-    if (error || !data.user) return null;
-    return data.user;
-  }
-  let pending = cache.get(authUserId);
-  if (!pending) {
-    pending = (async () => {
-      const { data, error } =
-        await supabaseAdmin.client.auth.admin.getUserById(authUserId);
-      if (error || !data.user) return null;
-      return data.user;
-    })();
-    cache.set(authUserId, pending);
-  }
-  return pending;
-}
-
 @Resolver(() => User)
 export class UserResolver {
-  constructor(
-    private readonly userService: UserService,
-    private readonly supabaseAdmin: SupabaseAdminClient,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
-  @ResolveField(() => Company)
-  async company(
-    @Parent()
-    user: {
-      company_id?: string | bigint;
-      companies?: Record<string, unknown> | null;
-      company?: unknown;
-    },
-  ): Promise<Company | null> {
-    if (user.company != null) return user.company as Company;
-    if (user.companies != null) {
-      return bigintToString(user.companies as Record<string, unknown>) as unknown as Company;
+  // Per-request cache to avoid duplicate Supabase calls when both
+  // fullName and phone are requested for the same user in one query.
+  private getCachedAuthUser(
+    cache: Map<string, Promise<SupabaseAuthUser | null>> | undefined,
+    authUserId: string,
+  ): Promise<SupabaseAuthUser | null> {
+    if (!cache) return this.userService.getAuthUserById(authUserId);
+    if (!cache.has(authUserId)) {
+      cache.set(authUserId, this.userService.getAuthUserById(authUserId));
     }
-    if (user.company_id == null) return null;
-    const row = await this.prisma.companies.findUnique({
-      where: { id: BigInt(String(user.company_id)) },
-    });
-    return row ? (bigintToString(row) as unknown as Company) : null;
+    return cache.get(authUserId)!;
+  }
+
+  @ResolveField(() => Company, { nullable: true })
+  company(@Parent() user: { company?: Company | null }): Company | null {
+    return user.company ?? null;
   }
 
   @ResolveField('fullName', () => String, { nullable: true })
@@ -99,14 +63,9 @@ export class UserResolver {
     @Context() ctx: GqlContext,
   ): Promise<string | null> {
     if (!user.auth_user_id) return null;
-    const authUser = await getCachedSupabaseAuthUser(
-      this.supabaseAdmin,
-      ctx.supabaseAuthUserById,
-      user.auth_user_id,
-    );
-    if (!authUser) return null;
-    return stringFromUserMetadata(
-      authUser.user_metadata as Record<string, unknown>,
+    const authUser = await this.getCachedAuthUser(ctx.supabaseAuthUserById, user.auth_user_id);
+    return extractMetaField(
+      authUser?.user_metadata as Record<string, unknown> | undefined,
       ['full_name', 'name', 'display_name'],
     );
   }
@@ -117,21 +76,16 @@ export class UserResolver {
     @Context() ctx: GqlContext,
   ): Promise<string | null> {
     if (!user.auth_user_id) return null;
-    const authUser = await getCachedSupabaseAuthUser(
-      this.supabaseAdmin,
-      ctx.supabaseAuthUserById,
-      user.auth_user_id,
-    );
-    if (!authUser) return null;
-    return stringFromUserMetadata(
-      authUser.user_metadata as Record<string, unknown>,
+    const authUser = await this.getCachedAuthUser(ctx.supabaseAuthUserById, user.auth_user_id);
+    return extractMetaField(
+      authUser?.user_metadata as Record<string, unknown> | undefined,
       ['phone', 'phone_number'],
     );
   }
 
   @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
-  @Query(() => User, { name: 'me' })
+  @Query(() => User, { name: 'me', nullable: true })
   me(@CurrentUser() current?: AuthContextUser) {
     if (!current?.user?.id) return null;
     return this.userService.findById(current.user.id);
@@ -141,16 +95,15 @@ export class UserResolver {
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [Invitation], { name: 'userInvitations' })
   userInvitations(@CurrentUser() current?: AuthContextUser) {
-    const email =
-      current?.user?.email?.trim() || current?.authUser?.email?.trim();
+    const email = current?.user?.email?.trim() || current?.authUser?.email?.trim();
     if (!email) return [];
     return this.userService.findUserInvitations(email);
   }
 
   @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
-  @Query(() => User, { name: 'acceptInvite' })
-  async acceptInvite(
+  @Mutation(() => User, { name: 'acceptInvite' })
+  acceptInvite(
     @CurrentUser() current: AuthContextUser,
     @Args('id', { type: () => ID }) id: string,
   ) {
@@ -160,7 +113,7 @@ export class UserResolver {
   @AllowUnregisteredAppUser()
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Boolean, { name: 'declineInvitation' })
-  async declineInvitation(
+  declineInvitation(
     @CurrentUser() current: AuthContextUser,
     @Args('invitationId') invitationId: string,
   ): Promise<boolean> {

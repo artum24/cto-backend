@@ -34,6 +34,7 @@ export class SupliersService {
         site_url: input.siteUrl ?? null,
         comment: input.comment ?? null,
         suplier_name: input.suplierName ?? null,
+        archived: false,
         created_at: now,
         updated_at: now,
       },

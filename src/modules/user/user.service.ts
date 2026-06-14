@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { SupabaseAdminClient } from '@/auth/supabase.client';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { UserRoles } from './enums/user-roles.enum';
 import { UserStatuses } from './enums/user-statuses.enum';
 
@@ -13,11 +14,23 @@ export class UserService {
     private readonly supabaseAdmin: SupabaseAdminClient,
   ) {}
 
-  findById(id: string) {
-    return this.prisma.users.findUnique({
+  async findById(id: string) {
+    const row = await this.prisma.users.findUnique({
       where: { id },
       include: { companies: true },
     });
+    if (!row) return null;
+    const { companies, ...rest } = row;
+    return {
+      ...bigintToString(rest),
+      company: companies ? bigintToString(companies) : null,
+    };
+  }
+
+  async getAuthUserById(authUserId: string): Promise<SupabaseAuthUser | null> {
+    const { data, error } = await this.supabaseAdmin.client.auth.admin.getUserById(authUserId);
+    if (error || !data.user) return null;
+    return data.user;
   }
 
   async findUserInvitations(email: string) {
@@ -35,12 +48,12 @@ export class UserService {
       where: { id: invitationId },
     });
     if (!invitation) {
-      throw new Error('Invitation not found.');
+      throw new NotFoundException('Invitation not found.');
     }
     const invitedEmail = invitation.email?.trim().toLowerCase();
     const userEmail = (currentUser.authUser.email as string)?.trim().toLowerCase();
     if (!invitedEmail || !userEmail || invitedEmail !== userEmail) {
-      throw new Error('This invitation was sent to a different email address.');
+      throw new ForbiddenException('This invitation was sent to a different email address.');
     }
     const now = new Date();
     const user = await this.prisma.users.upsert({
@@ -75,7 +88,7 @@ export class UserService {
       },
     );
     if (error) {
-      throw new Error(`Failed to update auth: ${error.message}`);
+      throw new ForbiddenException(`Failed to update auth metadata: ${error.message}`);
     }
     const { companies, ...userRest } = user;
     return {
@@ -89,12 +102,12 @@ export class UserService {
       where: { id: invitationId },
     });
     if (!invitation) {
-      throw new Error('Invitation not found.');
+      throw new NotFoundException('Invitation not found.');
     }
     const invitedEmail = invitation.email?.trim().toLowerCase();
     const userEmail = (currentUser.authUser.email as string)?.trim().toLowerCase();
     if (!invitedEmail || !userEmail || invitedEmail !== userEmail) {
-      throw new Error('This invitation was sent to a different email address.');
+      throw new ForbiddenException('This invitation was sent to a different email address.');
     }
     await this.prisma.invitations.delete({
       where: { id: invitationId },

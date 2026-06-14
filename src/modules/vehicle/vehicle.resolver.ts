@@ -54,22 +54,6 @@ export class VehicleResolver {
   }
 
   @UseGuards(SupabaseAuthGuard)
-  @Query(() => [VehicleMake], { name: 'vehicleMakes' })
-  async vehiclesMakes(@CurrentUser() current?: AuthContextUser) {
-    const u = current?.user;
-    if (!u?.company_id) return [];
-    return this.vehicleService.findAllMakes();
-  }
-
-  @UseGuards(SupabaseAuthGuard)
-  @Query(() => [VehicleModel], { name: 'vehicleModels' })
-  async vehiclesModels(@CurrentUser() current?: AuthContextUser) {
-    const u = current?.user;
-    if (!u?.company_id) return [];
-    return this.vehicleService.findAllModels();
-  }
-
-  @UseGuards(SupabaseAuthGuard)
   @Query(() => [VehicleModel], { name: 'vehicleModelsByMake' })
   async vehiclesModelsByMake(
     @CurrentUser() current?: AuthContextUser,

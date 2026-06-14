@@ -9,6 +9,7 @@ export class StorageService {
   async findByCompanyId(companyId: bigint) {
     const storage = await this.prisma.storages.findFirst({
       where: { company_id: companyId },
+      orderBy: { id: 'asc' },
     });
     return storage ? bigintToString(storage) : null;
   }

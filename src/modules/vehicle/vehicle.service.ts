@@ -114,16 +114,6 @@ export class VehicleService {
     };
   }
 
-  async findAllMakes() {
-    const makes = await this.prisma.vehicle_makes.findMany();
-    return makes.map(bigintToString);
-  }
-
-  async findAllModels() {
-    const models = await this.prisma.vehicle_models.findMany();
-    return models.map(bigintToString);
-  }
-
   async findAllModelsByMake(vehicleMakeId: number, vehicleType: VehicleType) {
     const models = await this.prisma.vehicle_models.findMany({
       where: { vehicle_make_id: vehicleMakeId, vehicle_type: vehicleType },

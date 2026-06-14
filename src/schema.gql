@@ -360,9 +360,7 @@ type Query {
   validatePhone(phone: String!): PhoneValidationValues!
   vehicleHistories: [VehicleHistory!]!
   vehicleHistory(id: ID!): VehicleHistory!
-  vehicleMakes: [VehicleMake!]!
   vehicleMakesByType(vehicleType: VehicleType!): [VehicleMake!]!
-  vehicleModels: [VehicleModel!]!
   vehicleModelsByMake(vehicleMakeId: Int!, vehicleType: VehicleType!): [VehicleModel!]!
   vehicles(input: VehiclesInput!): [Vehicle!]!
 }
