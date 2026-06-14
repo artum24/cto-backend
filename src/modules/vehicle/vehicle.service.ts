@@ -151,13 +151,23 @@ export class VehicleService {
         );
       }
     }
+    const fields = vehicleInputWithoutClientId(input);
+    // Auto-fill denormalized name columns when only IDs are provided
+    if (fields.vehicleMakeId != null && fields.vehicleMakeName == null) {
+      const make = await this.prisma.vehicle_makes.findUnique({
+        where: { vehicle_make_id: fields.vehicleMakeId },
+      });
+      fields.vehicleMakeName = make?.vehicle_make_name ?? null;
+    }
+    if (fields.vehicleModelId != null && fields.vehicleModelName == null) {
+      const model = await this.prisma.vehicle_models.findUnique({
+        where: { vehicle_model_id: fields.vehicleModelId },
+      });
+      fields.vehicleModelName = model?.vehicle_model_name ?? null;
+    }
     const now = new Date();
     const created = await this.prisma.vehicles.create({
-      data: buildVehicleUncheckedCreate(
-        clientId,
-        vehicleInputWithoutClientId(input),
-        now,
-      ),
+      data: buildVehicleUncheckedCreate(clientId, fields, now),
       include: { clients: true },
     });
     return mapVehicle(created);

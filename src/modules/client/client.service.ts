@@ -89,6 +89,26 @@ export class ClientService {
       );
     }
 
+    // Resolve make/model names outside the transaction (reads don't need to be transactional)
+    const vehiclesWithNames = await Promise.all(
+      input.vehicles.map(async (v) => {
+        const fields = { ...(v as VehicleCreateFields) };
+        if (fields.vehicleMakeId != null && fields.vehicleMakeName == null) {
+          const make = await this.prisma.vehicle_makes.findUnique({
+            where: { vehicle_make_id: fields.vehicleMakeId },
+          });
+          fields.vehicleMakeName = make?.vehicle_make_name ?? null;
+        }
+        if (fields.vehicleModelId != null && fields.vehicleModelName == null) {
+          const model = await this.prisma.vehicle_models.findUnique({
+            where: { vehicle_model_id: fields.vehicleModelId },
+          });
+          fields.vehicleModelName = model?.vehicle_model_name ?? null;
+        }
+        return fields;
+      }),
+    );
+
     const clientRow = await this.prisma.$transaction(async (tx) => {
       const now = new Date();
       const client = await tx.clients.create({
@@ -101,7 +121,7 @@ export class ClientService {
         },
       });
 
-      for (const v of input.vehicles) {
+      for (const v of vehiclesWithNames) {
         if (v.vehicleNumber != null && v.vehicleNumber !== '') {
           // Scope uniqueness check to this company (BUG-1 fix)
           const existing = await tx.vehicles.findFirst({
@@ -119,7 +139,7 @@ export class ClientService {
         await tx.vehicles.create({
           data: buildVehicleUncheckedCreate(
             client.id,
-            v as VehicleCreateFields,
+            v,
             now,
           ),
         });
