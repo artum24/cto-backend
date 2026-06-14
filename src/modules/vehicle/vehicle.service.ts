@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
@@ -10,6 +10,16 @@ import {
 } from '@/modules/vehicle/vehicle-create-data';
 import { VehicleType } from './enums/vehicle-type.enum';
 import { Prisma } from '@prisma/client';
+
+type VehicleWithClient = Prisma.vehiclesGetPayload<{ include: { clients: true } }>;
+
+function mapVehicle(v: VehicleWithClient) {
+  const { clients, ...rest } = v;
+  return {
+    ...bigintToString(rest),
+    client: bigintToString(clients),
+  };
+}
 
 @Injectable()
 export class VehicleService {
@@ -71,11 +81,7 @@ export class VehicleService {
       take: limit,
     });
 
-    type VehicleWithClient = Prisma.vehiclesGetPayload<{ include: { clients: true } }>;
-    return vehicles.map((v: VehicleWithClient) => ({
-      ...bigintToString(v),
-      client: bigintToString(v.clients),
-    }));
+    return vehicles.map(mapVehicle);
   }
 
   async filteredVehicles(
@@ -86,8 +92,6 @@ export class VehicleService {
     const limit = Math.min(100, Math.max(1, opts.limit ?? 25));
     const where = this.buildVehicleWhere(companyId, opts.search);
     const orderByClause = this.buildOrderByClause(opts.orderBy);
-
-    type VehicleWithClient = Prisma.vehiclesGetPayload<{ include: { clients: true } }>;
 
     const [vehicles, totalCount] = await Promise.all([
       this.prisma.vehicles.findMany({
@@ -100,13 +104,8 @@ export class VehicleService {
       this.prisma.vehicles.count({ where }),
     ]);
 
-    const collection = vehicles.map((v: VehicleWithClient) => ({
-      ...bigintToString(v),
-      client: bigintToString(v.clients),
-    }));
-
     return {
-      collection,
+      collection: vehicles.map(mapVehicle),
       metadata: {
         currentPage: page,
         limitValue: limit,
@@ -136,15 +135,19 @@ export class VehicleService {
       where: { id: clientId, company_id: companyId },
     });
     if (!client) {
-      throw new Error('Client not found or does not belong to your company.');
+      throw new NotFoundException('Client not found or does not belong to your company.');
     }
     if (input.vehicleNumber != null && input.vehicleNumber !== '') {
+      // Scope uniqueness check to this company (BUG-1 fix)
       const existing = await this.prisma.vehicles.findFirst({
-        where: { vehicle_number: input.vehicleNumber },
+        where: {
+          vehicle_number: input.vehicleNumber,
+          clients: { company_id: companyId },
+        },
       });
       if (existing) {
-        throw new Error(
-          'A vehicle with this registration number already exists.',
+        throw new BadRequestException(
+          'A vehicle with this registration number already exists in your company.',
         );
       }
     }
@@ -155,16 +158,9 @@ export class VehicleService {
         vehicleInputWithoutClientId(input),
         now,
       ),
-    });
-    const withClient = await this.prisma.vehicles.findUnique({
-      where: { id: created.id },
       include: { clients: true },
     });
-    if (!withClient) throw new Error('Failed to load created vehicle');
-    return {
-      ...bigintToString(withClient),
-      client: bigintToString(withClient.clients),
-    };
+    return mapVehicle(created);
   }
 
   async update(companyId: bigint, input: UpdateVehicleInput) {
@@ -174,22 +170,24 @@ export class VehicleService {
       include: { clients: true },
     });
     if (!existing || existing.clients.company_id !== companyId) {
-      throw new Error('Vehicle not found or does not belong to your company.');
+      throw new NotFoundException('Vehicle not found or does not belong to your company.');
     }
     if (
       input.vehicle_number != null &&
       input.vehicle_number !== '' &&
       input.vehicle_number !== existing.vehicle_number
     ) {
+      // Scope uniqueness check to this company (BUG-1 fix)
       const other = await this.prisma.vehicles.findFirst({
         where: {
           vehicle_number: input.vehicle_number,
           id: { not: id },
+          clients: { company_id: companyId },
         },
       });
       if (other) {
-        throw new Error(
-          'Another vehicle already has this registration number.',
+        throw new BadRequestException(
+          'Another vehicle in your company already has this registration number.',
         );
       }
     }
@@ -243,19 +241,12 @@ export class VehicleService {
     if (input.vehicle_model_name !== undefined)
       data.vehicle_model_name = input.vehicle_model_name ?? null;
 
-    await this.prisma.vehicles.update({
+    const updated = await this.prisma.vehicles.update({
       where: { id },
       data,
-    });
-    const updated = await this.prisma.vehicles.findUnique({
-      where: { id },
       include: { clients: true },
     });
-    if (!updated) throw new Error('Failed to load updated vehicle');
-    return {
-      ...bigintToString(updated),
-      client: bigintToString(updated.clients),
-    };
+    return mapVehicle(updated);
   }
 
   async archive(companyId: bigint, id: string) {
@@ -265,21 +256,14 @@ export class VehicleService {
       include: { clients: true },
     });
     if (!existing || existing.clients.company_id !== companyId) {
-      throw new Error('Vehicle not found or does not belong to your company.');
+      throw new NotFoundException('Vehicle not found or does not belong to your company.');
     }
-    await this.prisma.vehicles.update({
+    const archived = await this.prisma.vehicles.update({
       where: { id: idBigInt },
       data: { archived: true, updated_at: new Date() },
-    });
-    const archived = await this.prisma.vehicles.findUnique({
-      where: { id: idBigInt },
       include: { clients: true },
     });
-    if (!archived) throw new Error('Failed to load archived vehicle');
-    return {
-      ...bigintToString(archived),
-      client: bigintToString(archived.clients),
-    };
+    return mapVehicle(archived);
   }
 
   async remove(companyId: bigint, id: string): Promise<boolean> {
@@ -289,13 +273,13 @@ export class VehicleService {
       include: { clients: true },
     });
     if (!existing || existing.clients.company_id !== companyId) {
-      throw new Error('Vehicle not found or does not belong to your company.');
+      throw new NotFoundException('Vehicle not found or does not belong to your company.');
     }
     const tasksCount = await this.prisma.tasks.count({
       where: { vehicle_id: idBigInt },
     });
     if (tasksCount > 0) {
-      throw new Error(
+      throw new BadRequestException(
         `Cannot delete vehicle: ${tasksCount} task(s) are still linked.`,
       );
     }
@@ -303,4 +287,3 @@ export class VehicleService {
     return true;
   }
 }
-

@@ -1,7 +1,7 @@
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Vehicle } from '@/modules/vehicle/models/vehicle.model';
 import { VehicleService } from '@/modules/vehicle/vehicle.service';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, ForbiddenException } from '@nestjs/common';
 import {
   type AuthContextUser,
   SupabaseAuthGuard,
@@ -23,7 +23,7 @@ export class VehicleResolver {
 
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [Vehicle], { name: 'vehicles' })
-  async vehicles(
+  vehicles(
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: VehiclesInput,
   ) {
@@ -34,7 +34,7 @@ export class VehicleResolver {
 
   @UseGuards(SupabaseAuthGuard)
   @Query(() => FilteredVehiclesResult, { name: 'filteredVehicles' })
-  async filteredVehicles(
+  filteredVehicles(
     @CurrentUser() current: AuthContextUser,
     @Args('page', { type: () => Int, nullable: true }) page?: number | null,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number | null,
@@ -55,36 +55,34 @@ export class VehicleResolver {
 
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [VehicleModel], { name: 'vehicleModelsByMake' })
-  async vehiclesModelsByMake(
+  vehiclesModelsByMake(
     @CurrentUser() current?: AuthContextUser,
     @Args('vehicleMakeId', { type: () => Int }) vehicleMakeId?: number,
     @Args('vehicleType', { type: () => VehicleType }) vehicleType?: VehicleType,
   ) {
-    const u = current?.user;
-    if (!u?.company_id || !vehicleMakeId || !vehicleType) return [];
+    if (!vehicleMakeId || !vehicleType) return [];
     return this.vehicleService.findAllModelsByMake(vehicleMakeId, vehicleType);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Query(() => [VehicleMake], { name: 'vehicleMakesByType' })
-  async vehiclesMakesByType(
+  vehiclesMakesByType(
     @CurrentUser() current?: AuthContextUser,
     @Args('vehicleType', { type: () => VehicleType }) vehicleType?: VehicleType,
   ) {
-    const u = current?.user;
-    if (!u?.company_id || !vehicleType) return [];
+    if (!vehicleType) return [];
     return this.vehicleService.findAllMakesByType(vehicleType);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Vehicle, { name: 'createVehicle' })
-  async createVehicle(
+  createVehicle(
     @CurrentUser() current: AuthContextUser,
     @Args('input') input: CreateVehicleInput,
   ) {
     const u = current.user;
     if (!u?.company_id) {
-      throw new Error('User is not associated with a company.');
+      throw new ForbiddenException('User is not associated with a company.');
     }
     return this.vehicleService.create(BigInt(u.company_id), input);
   }
@@ -97,35 +95,35 @@ export class VehicleResolver {
   ): Promise<VehicleUpdateOutput> {
     const u = current.user;
     if (!u?.company_id) {
-      throw new Error('User is not associated with a company.');
+      throw new ForbiddenException('User is not associated with a company.');
     }
     const result = await this.vehicleService.update(BigInt(u.company_id), input);
-    const { client, ...vehicleFields } = result as any;
-    return { vehicle: vehicleFields, client };
+    const { client, ...vehicle } = result;
+    return { vehicle, client } as unknown as VehicleUpdateOutput;
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Vehicle, { name: 'archiveVehicle' })
-  async archiveVehicle(
+  archiveVehicle(
     @CurrentUser() current: AuthContextUser,
     @Args('id') id: string,
   ) {
     const u = current.user;
     if (!u?.company_id) {
-      throw new Error('User is not associated with a company.');
+      throw new ForbiddenException('User is not associated with a company.');
     }
     return this.vehicleService.archive(BigInt(u.company_id), id);
   }
 
   @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Boolean, { name: 'deleteVehicle' })
-  async deleteVehicle(
+  deleteVehicle(
     @CurrentUser() current: AuthContextUser,
     @Args('id') id: string,
   ) {
     const u = current.user;
     if (!u?.company_id) {
-      throw new Error('User is not associated with a company.');
+      throw new ForbiddenException('User is not associated with a company.');
     }
     return this.vehicleService.remove(BigInt(u.company_id), id);
   }
