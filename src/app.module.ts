@@ -11,6 +11,7 @@ import Joi from 'joi';
 import { Request, Response } from 'express';
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -33,6 +34,8 @@ import { UploadModule } from '@/modules/upload/upload.module';
 import { ReportModule } from '@/modules/report/report.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { InvoiceModule } from '@/modules/invoice/invoice.module';
+import { NhtsaModule } from '@/modules/nhtsa/nhtsa.module';
+import {WorkspaceModule} from "@/modules/workspaces/workspace.module";
 
 const isProduction = process.env.NODE_ENV === 'production';
 /** Vercel / production: no writable `src/schema.gql` — keep schema in memory. */
@@ -48,6 +51,7 @@ const graphQLIntrospection = enableApolloSandbox
 @Module({
   imports: [
     HttpModule,
+    ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
 
     // Rate limiting: 200 requests per 60 seconds per IP
@@ -112,6 +116,8 @@ const graphQLIntrospection = enableApolloSandbox
     UploadModule,
     ReportModule,
     InvoiceModule,
+    NhtsaModule,
+    WorkspaceModule
   ],
   controllers: [AppController],
   providers: [

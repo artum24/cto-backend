@@ -103,9 +103,13 @@ input CreateSuplierInput {
 }
 
 input CreateTaskInput {
+  end_time: DateTime
+  performer_id: ID
+  start_time: DateTime
   status: TaskStatus
   title: String
   vehicle_id: ID!
+  workspace_id: ID
 }
 
 input CreateVehicleForClientInput {
@@ -141,6 +145,11 @@ input CreateVehicleInput {
   vehicleType: VehicleType
   vehicleVinCode: String
   vehicleYear: Int!
+}
+
+input CreateWorkspaceInput {
+  number: Float!
+  title: String
 }
 
 """
@@ -268,6 +277,7 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type Mutation {
+  acceptInvite(id: ID!): User!
   archiveCategory(id: ID!): Category!
   archiveClient(id: ID!): Client!
   archiveDetail(id: String!): Detail!
@@ -305,6 +315,9 @@ type Mutation {
   vehicleHistoryDelete(id: ID!): VehicleHistory!
   vehicleHistoryUpdate(input: UpdateVehicleHistoryInput!): VehicleHistory!
   vehicleUpdate(input: VehicleUpdateInput!): VehicleUpdateOutput!
+  workspaceCreate(input: CreateWorkspaceInput!): Workspace!
+  workspaceDelete(id: ID!): Workspace!
+  workspaceUpdate(input: UpdateWorkspaceInput!): Workspace!
 }
 
 type NovaPoshtaAddress {
@@ -335,12 +348,12 @@ enum PhoneValidationValues {
 }
 
 type Query {
-  acceptInvite(id: ID!): User!
+  allTasks(filter: TasksFilterInput): [TasksByDate!]!
   categories(archived: Boolean): [Category!]!
   client(id: ID!): Client!
-  clients: [Client!]!
+  clients(includeArchived: Boolean = false): [Client!]!
   companyMembers: [CompanyMember!]!
-  currentUserCompany: Company!
+  currentUserCompany: Company
   dataErrors(jobId: String!): Report
   detail(id: String!): Detail!
   detailHistories(detailId: ID, taskId: ID): [DetailHistory!]!
@@ -349,13 +362,14 @@ type Query {
   getNpAddress(cityRef: String!, streetName: String!): [NovaPoshtaAddress!]!
   getNpCity(searchTerm: String!): [NovaPoshtaCity!]!
   invoice(taskId: ID!): Invoice
-  me: User!
+  me: User
   service(id: ID!): Service!
   services: [Service!]!
   storage: Storage
   supliers(archived: Boolean): [Suplier!]!
   task(id: ID!): Task!
   tasks: [Task!]!
+  tasksByDate(date: DateTime!): [Task!]!
   userInvitations: [Invitation!]!
   validatePhone(phone: String!): PhoneValidationValues!
   vehicleHistories: [VehicleHistory!]!
@@ -363,6 +377,7 @@ type Query {
   vehicleMakesByType(vehicleType: VehicleType!): [VehicleMake!]!
   vehicleModelsByMake(vehicleMakeId: Int!, vehicleType: VehicleType!): [VehicleModel!]!
   vehicles(input: VehiclesInput!): [Vehicle!]!
+  workspaces: [Workspace!]!
 }
 
 input RecordDetailMovementInput {
@@ -411,23 +426,45 @@ type Suplier {
 
 type Task {
   created_at: DateTime!
+  end_time: DateTime
   id: ID!
+  performer: User
+  performer_id: ID
+  start_time: DateTime
   status: TaskStatus!
   title: String
   updated_at: DateTime!
+  vehicle: Vehicle
   vehicle_id: ID!
+  workspace: Workspace
+  workspace_id: ID
 }
 
 """Possible statuses for a task"""
 enum TaskStatus {
-  """Task has been created"""
+  """Task has been created (Заплановано)"""
   CREATED
 
-  """Task has been completed"""
+  """Task has been completed (Виконано)"""
   FINISHED
 
-  """Task is currently in progress"""
+  """Task is currently in progress (В роботі)"""
   IN_PROGRESS
+
+  """Task is past its end time and not finished (Прострочено)"""
+  OVERDUE
+}
+
+type TasksByDate {
+  count: Float!
+  date: String!
+  tasks: [Task!]!
+}
+
+input TasksFilterInput {
+  performerIds: [ID!]
+  statuses: [TaskStatus!]
+  workspaceIds: [ID!]
 }
 
 input UpdateCategoryInput {
@@ -480,10 +517,14 @@ input UpdateSuplierInput {
 }
 
 input UpdateTaskInput {
+  end_time: DateTime
   id: ID!
+  performer_id: ID
+  start_time: DateTime
   status: TaskStatus
   title: String
   vehicle_id: ID
+  workspace_id: ID
 }
 
 input UpdateVehicleHistoryInput {
@@ -492,6 +533,12 @@ input UpdateVehicleHistoryInput {
   service_id: ID
   status: String
   task_id: ID
+}
+
+input UpdateWorkspaceInput {
+  id: ID!
+  number: Float!
+  title: String
 }
 
 type User {
@@ -641,4 +688,11 @@ type VehiclesMetadata {
   limitValue: Int!
   totalCount: Int!
   totalPages: Int!
+}
+
+type Workspace {
+  company_id: ID!
+  id: ID!
+  number: Float
+  title: String
 }

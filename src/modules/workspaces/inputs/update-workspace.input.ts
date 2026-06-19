@@ -1,0 +1,18 @@
+import {Field, ID, InputType} from '@nestjs/graphql';
+import {IsNotEmpty, IsOptional, IsString} from 'class-validator';
+
+@InputType()
+export class UpdateWorkspaceInput {
+  @Field(() => ID)
+  @IsNotEmpty()
+  id: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @Field(() => Number)
+  @IsOptional()
+  number?: number;
+}

@@ -3,10 +3,11 @@ import { UseGuards } from '@nestjs/common';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
-import { Task } from './models/task.model';
+import {Task, TasksByDate} from './models/task.model';
 import { TasksService } from './tasks.service';
 import { CreateTaskInput } from './inputs/create-task.input';
 import { UpdateTaskInput } from './inputs/update-task.input';
+import {TasksFilterInput} from "@/modules/tasks/inputs/tasks-filter.input";
 
 @Resolver(() => Task)
 @UseGuards(SupabaseAuthGuard)
@@ -30,6 +31,28 @@ export class TasksResolver {
     @CurrentUser() user: AuthContextUser,
   ) {
     return this.tasksService.findOne(BigInt(id), this.companyId(user));
+  }
+
+  @Query(() => [Task], { name: 'tasksByDate' })
+  async getTasksByDate(
+    @Args('date', { type: () => Date }) date: Date,
+    @CurrentUser() user: AuthContextUser,
+  ) {
+    return this.tasksService.findByDate(date, this.companyId(user));
+  }
+
+  @Query(() => [TasksByDate], { name: 'allTasks' })
+  async getAllTasks(
+      @Args('filter', { nullable: true }) filter: TasksFilterInput,
+      @CurrentUser() user: AuthContextUser,
+  ) {
+    const companyId = this.companyId(user);
+    return this.tasksService.findAllGrouped({
+      companyId,
+      workspaceIds: filter?.workspaceIds?.map(id => BigInt(id)) ?? [],
+      performerIds: filter?.performerIds ?? [],
+      statuses: filter?.statuses ?? [],
+    });
   }
 
   @Mutation(() => Task, { name: 'taskCreate' })

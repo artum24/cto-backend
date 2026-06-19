@@ -124,7 +124,9 @@ export class VehicleService {
 
   async findAllMakesByType(vehicleType: VehicleType) {
     const makes = await this.prisma.vehicle_makes.findMany({
-      where: { vehicle_type: vehicleType },
+      where: {
+        vehicle_make_types: { some: { vehicle_type: vehicleType } },
+      },
     });
     return makes.map(bigintToString);
   }

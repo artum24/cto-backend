@@ -1,15 +1,13 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema", "postgresqlExtensions", "driverAdapters"]
-  binaryTargets   = ["native", "debian-openssl-3.0.x"]
+  previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
-  extensions = [pg_trgm, uuid_ossp(map: "uuid-ossp")]
-  schemas   = ["public"]
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  schemas    = ["public"]
+  extensions = [pg_trgm]
 }
 
 model active_storage_attachments {
@@ -69,7 +67,6 @@ model categories {
   updated_at  DateTime  @db.Timestamp(6)
   archived    Boolean   @default(false)
   archived_at DateTime? @db.Timestamp(6)
-  partsCount  Int?      @map("parts_count")
   storages    storages  @relation(fields: [storage_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_8c8584bd5f")
   details     details[]
 
@@ -91,6 +88,7 @@ model clients {
 
   @@unique([company_id, phone], map: "index_clients_on_company_id_and_phone")
   @@index([company_id], map: "index_clients_on_company_id")
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "index_clients_on_name", type: Gin)
   @@schema("public")
 }
 
@@ -107,7 +105,6 @@ model companies {
   house_number String?       @db.VarChar
   clients      clients[]
   invitations  invitations[]
-  reports      reports[]
   storages     storages[]
   users        users[]
   workspaces   workspaces[]
@@ -196,13 +193,11 @@ model invitations {
 }
 
 model reports {
-  id          BigInt     @id @default(autoincrement())
-  job_id      String?    @unique(map: "index_reports_on_job_id") @db.VarChar
+  id          BigInt   @id @default(autoincrement())
+  job_id      String?  @unique(map: "index_reports_on_job_id") @db.VarChar
   data_errors Json?
-  company_id  BigInt?
-  created_at  DateTime   @db.Timestamp(6)
-  updated_at  DateTime   @db.Timestamp(6)
-  companies   companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  created_at  DateTime @db.Timestamp(6)
+  updated_at  DateTime @db.Timestamp(6)
 
   @@schema("public")
 }
@@ -217,24 +212,10 @@ model services {
   id                BigInt              @id @default(autoincrement())
   title             String?             @db.VarChar
   description       String?             @db.VarChar
-  price             Decimal?            @db.Decimal
   created_at        DateTime            @db.Timestamp(6)
   updated_at        DateTime            @db.Timestamp(6)
   vehicle_histories vehicle_histories[]
 
-  @@schema("public")
-}
-
-model invoices {
-  id           BigInt   @id @default(autoincrement())
-  task_id      BigInt   @unique
-  total_amount Decimal  @db.Decimal
-  pdf_url      String?  @db.Text
-  created_at   DateTime @db.Timestamp(6)
-  updated_at   DateTime @db.Timestamp(6)
-  tasks        tasks    @relation(fields: [task_id], references: [id], onDelete: Cascade)
-
-  @@index([task_id], map: "index_invoices_on_task_id")
   @@schema("public")
 }
 
@@ -281,16 +262,9 @@ model tasks {
   vehicle_id        BigInt
   created_at        DateTime            @db.Timestamp(6)
   updated_at        DateTime            @db.Timestamp(6)
-  start_time        DateTime?           @db.Timestamp(6)
-  end_time          DateTime?           @db.Timestamp(6)
-  workspace_id      BigInt?
-  performer_id      String?             @db.Uuid
   detail_histories  detail_histories[]
-  invoices          invoices?
   vehicles          vehicles            @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_e6342a7e7d")
   vehicle_histories vehicle_histories[]
-  workspaces        workspaces?         @relation(fields: [workspace_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users             users?  @relation("TaskPerformer", fields: [performer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([vehicle_id], map: "index_tasks_on_vehicle_id")
   @@schema("public")
@@ -313,10 +287,9 @@ model users {
   auth_user_id     String             @unique(map: "index_users_on_auth_user_id") @db.Uuid
   status           Int                @default(2)
   email            String?            @unique(map: "index_users_on_email") @db.VarChar
-  full_name        String?            @db.VarChar
   detail_histories detail_histories[]
   companies        companies          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_7682a3bdfe")
-  tasks  tasks[]  @relation("TaskPerformer")
+
   @@index([company_id], map: "index_users_on_company_id")
   @@schema("public")
 }
@@ -338,38 +311,24 @@ model vehicle_histories {
 }
 
 model vehicle_makes {
-  id                  BigInt               @id @default(autoincrement())
-  vehicle_make_id     Int                  @unique(map: "index_vehicle_makes_on_vehicle_make_id")
-  vehicle_make_name   String               @db.VarChar
-  vehicle_type        Int
-  created_at          DateTime             @db.Timestamp(6)
-  updated_at          DateTime             @db.Timestamp(6)
-  vehicle_models      vehicle_models[]
-  vehicle_make_types  vehicle_make_types[]
-  vehicles            vehicles[]
+  id                BigInt           @id @default(autoincrement())
+  vehicle_make_id   BigInt           @unique(map: "index_vehicle_makes_on_vehicle_make_id")
+  vehicle_make_name String           @db.VarChar
+  vehicle_type      Int
+  created_at        DateTime         @db.Timestamp(6)
+  updated_at        DateTime         @db.Timestamp(6)
+  vehicle_models    vehicle_models[]
+  vehicles          vehicles[]
 
-  @@schema("public")
-}
-
-model vehicle_make_types {
-  id              BigInt        @id @default(autoincrement())
-  vehicle_make_id Int
-  vehicle_type    Int
-  created_at      DateTime      @default(now()) @db.Timestamp(6)
-  vehicle_makes   vehicle_makes @relation(fields: [vehicle_make_id], references: [vehicle_make_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_vehicle_make_types_make")
-
-  @@unique([vehicle_make_id, vehicle_type], map: "uq_vehicle_make_types")
-  @@index([vehicle_make_id], map: "index_vehicle_make_types_on_vehicle_make_id")
-  @@index([vehicle_type], map: "index_vehicle_make_types_on_vehicle_type")
   @@schema("public")
 }
 
 model vehicle_models {
   id                 BigInt        @id @default(autoincrement())
-  vehicle_model_id   Int           @unique(map: "index_vehicle_models_on_vehicle_model_id")
+  vehicle_model_id   BigInt        @unique(map: "index_vehicle_models_on_vehicle_model_id")
   vehicle_model_name String        @db.VarChar
   vehicle_type       Int
-  vehicle_make_id    Int
+  vehicle_make_id    BigInt
   created_at         DateTime      @db.Timestamp(6)
   updated_at         DateTime      @db.Timestamp(6)
   vehicle_makes      vehicle_makes @relation(fields: [vehicle_make_id], references: [vehicle_make_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_d0bef20deb")
@@ -390,8 +349,8 @@ model vehicles {
   created_at           DateTime        @db.Timestamp(6)
   updated_at           DateTime        @db.Timestamp(6)
   vehicle_type         Int?
-  vehicle_make_id      Int?
-  vehicle_model_id     Int?
+  vehicle_make_id      BigInt?
+  vehicle_model_id     BigInt?
   vehicle_make_name    String?         @db.VarChar
   vehicle_model_name   String?         @db.VarChar
   archived             Boolean         @default(false)
@@ -416,7 +375,7 @@ model workspaces {
   created_at DateTime  @db.Timestamp(6)
   updated_at DateTime  @db.Timestamp(6)
   companies  companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_722962e7d3")
-  tasks      tasks[]
+
   @@index([company_id], map: "index_workspaces_on_company_id")
   @@schema("public")
 }
