@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { Field, ID, InputType, Int } from '@nestjs/graphql';
 import { OrderByInput } from '@/modules/vehicle/inputs/order-by.input';
 import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
@@ -25,4 +25,9 @@ export class VehiclesInput {
   @Min(1)
   @Max(100)
   limit?: number = 25;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsString()
+  clientId?: string;
 }

@@ -36,10 +36,11 @@ export class VehicleService {
   private buildVehicleWhere(
     companyId: bigint,
     search?: string | null,
+    clientId?: string | null,
   ): Prisma.vehiclesWhereInput {
     const where: Prisma.vehiclesWhereInput = {
       archived: false,
-      clients: { company_id: companyId },
+      clients: { company_id: companyId, ...(clientId ? { id: BigInt(clientId) } : {}) },
     };
     if (search) {
       const phoneSearch = search.replace(/[^0-9]/g, '').slice(-10);
@@ -67,10 +68,10 @@ export class VehicleService {
   }
 
   async findAndFilter(companyId: bigint, input: VehiclesInput) {
-    const { search, orderBy } = input;
+    const { search, orderBy, clientId } = input;
     const page = Math.max(1, input.page ?? 1);
     const limit = Math.min(100, Math.max(1, input.limit ?? 25));
-    const where = this.buildVehicleWhere(companyId, search);
+    const where = this.buildVehicleWhere(companyId, search, clientId);
     const orderByClause = this.buildOrderByClause(orderBy);
 
     const vehicles = await this.prisma.vehicles.findMany({
