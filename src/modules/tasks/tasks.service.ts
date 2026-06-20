@@ -46,10 +46,11 @@ export class TasksService {
       // Times are stored as "local time in UTC" (no timezone offset applied on save).
       // Shift now() by the business timezone offset so comparison is apples-to-apples.
       // Falls back to TZ env var offset, then to TIMEZONE_OFFSET_HOURS env var.
+      // Requires TZ=Europe/Kyiv env var on server (Railway), OR TIMEZONE_OFFSET_HOURS=3
       const envOffsetHours = parseInt(process.env.TIMEZONE_OFFSET_HOURS ?? '0', 10);
       const tzOffsetMs = envOffsetHours
         ? envOffsetHours * 60 * 60 * 1000
-        : -new Date().getTimezoneOffset() * 60 * 1000; // works if TZ=Europe/Kyiv is set
+        : -new Date().getTimezoneOffset() * 60 * 1000;
       const localNowAsUtc = new Date(Date.now() + tzOffsetMs);
       if (task.end_time < localNowAsUtc) return TaskStatus.OVERDUE;
     }
@@ -75,11 +76,22 @@ export class TasksService {
     };
   }
 
-  /** Verify that a task belongs to the given company via vehicle → client chain */
+  /** Lightweight ownership check — only fetches company_id, not full relations */
+  private async checkCompanyOwnership(taskId: bigint, companyId: bigint): Promise<void> {
+    const task = await this.prisma.tasks.findUnique({
+      where: { id: taskId },
+      include: { vehicles: { include: { clients: { select: { company_id: true } } } } },
+    });
+    if (!task) throw new NotFoundException(`Task #${taskId} not found`);
+    if (task.vehicles.clients.company_id !== companyId) {
+      throw new ForbiddenException('Access denied');
+    }
+  }
+
+  /** Full fetch with all relations — used when the task data is also needed */
   private async assertCompanyOwnership(taskId: bigint, companyId: bigint) {
     const task = await this.prisma.tasks.findUnique({
       where: { id: taskId },
-      // include: { vehicles: { include: { clients: true } } },
       include: TASK_INCLUDE,
     });
     if (!task) throw new NotFoundException(`Task #${taskId} not found`);
@@ -200,7 +212,7 @@ export class TasksService {
   }
 
   async update(input: UpdateTaskInput, companyId: bigint) {
-    await this.assertCompanyOwnership(BigInt(input.id), companyId);
+    await this.checkCompanyOwnership(BigInt(input.id), companyId);
 
     const updated = await this.prisma.tasks.update({
       where: { id: BigInt(input.id) },
