@@ -1,6 +1,5 @@
 import {Resolver, Query, Mutation, Args, ID, Subscription} from '@nestjs/graphql';
 import {Inject, UseGuards} from '@nestjs/common';
-import { SkipAuth } from '@/auth/skip-auth.decorator';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
@@ -10,14 +9,16 @@ import { CreateTaskInput } from './inputs/create-task.input';
 import { UpdateTaskInput } from './inputs/update-task.input';
 import {TasksFilterInput} from "@/modules/tasks/inputs/tasks-filter.input";
 import {TASK_PUB_SUB, TaskPubSub} from "@/modules/tasks/task-pubsub.provider";
-
 import {TaskEventsEnum} from "@/modules/tasks/enums/task-events.enum";
 import {TaskDeletedPayload} from "@/modules/tasks/models/task-deleted.model";
 
+// Guard applied per-method to queries/mutations only — subscriptions handle auth in onConnect
 @Resolver(() => Task)
-@UseGuards(SupabaseAuthGuard)
 export class TasksResolver {
-  constructor(private readonly tasksService: TasksService, @Inject(TASK_PUB_SUB) private pubSub: TaskPubSub) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    @Inject(TASK_PUB_SUB) private pubSub: TaskPubSub,
+  ) {}
 
   private companyId(user: AuthContextUser): bigint {
     const u = user.user;
@@ -25,11 +26,13 @@ export class TasksResolver {
     return BigInt(u.company_id);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Query(() => [Task], { name: 'tasks' })
   async getTasks(@CurrentUser() user: AuthContextUser) {
     return this.tasksService.findAll(this.companyId(user));
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Query(() => Task, { name: 'task' })
   async getTask(
     @Args('id', { type: () => ID }) id: string,
@@ -38,6 +41,7 @@ export class TasksResolver {
     return this.tasksService.findOne(BigInt(id), this.companyId(user));
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Query(() => [Task], { name: 'tasksByDate' })
   async getTasksByDate(
     @Args('date', { type: () => Date }) date: Date,
@@ -46,10 +50,11 @@ export class TasksResolver {
     return this.tasksService.findByDate(date, this.companyId(user));
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Query(() => AllTasksResult, { name: 'allTasks' })
   async getAllTasks(
-      @Args('filter', { nullable: true }) filter: TasksFilterInput,
-      @CurrentUser() user: AuthContextUser,
+    @Args('filter', { nullable: true }) filter: TasksFilterInput,
+    @CurrentUser() user: AuthContextUser,
   ) {
     const companyId = this.companyId(user);
     return this.tasksService.findAllGrouped({
@@ -64,6 +69,7 @@ export class TasksResolver {
     });
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Task, { name: 'taskCreate' })
   async createTask(
     @Args('input') input: CreateTaskInput,
@@ -72,6 +78,7 @@ export class TasksResolver {
     return this.tasksService.create(input, this.companyId(user));
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Task, { name: 'taskUpdate' })
   async updateTask(
     @Args('input') input: UpdateTaskInput,
@@ -80,6 +87,7 @@ export class TasksResolver {
     return this.tasksService.update(input, this.companyId(user));
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Mutation(() => Task, { name: 'taskDelete' })
   async deleteTask(
     @Args('id', { type: () => ID }) id: string,
@@ -88,39 +96,28 @@ export class TasksResolver {
     return this.tasksService.delete(BigInt(id), this.companyId(user));
   }
 
-  // Subscriptions skip the HTTP guard — auth is validated in onConnect via JWT decode.
-  // Company isolation is enforced in the filter via wsUser.companyId.
+  // ─── Subscriptions — no guard, auth done in onConnect ────────────────────────
 
-  @SkipAuth()
-  @Subscription(() => Task, {
-    filter: (payload, _vars, ctx) => {
-      console.log('[Sub filter] taskCreated companyId:', payload?.taskCreated?.companyId, 'wsUser:', ctx?.wsUser);
-      return String(payload.taskCreated.companyId) === String(ctx.wsUser?.companyId);
-    },
-  })
-  taskCreated() {
-    console.log('[Sub] taskCreated called, pubSub:', !!this.pubSub);
-    try {
-      return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
-    } catch (e) {
-      console.error('[Sub] taskCreated error:', e);
-      throw e;
-    }
-  }
-
-  @SkipAuth()
   @Subscription(() => Task, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskUpdated.companyId) === String(ctx.wsUser?.companyId),
+      String(payload.taskCreated.companyId) === String(ctx.wsUser?.companyId),
+  })
+  taskCreated() {
+    console.log('[Sub] taskCreated called');
+    return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
+  }
+
+  @Subscription(() => Task, {
+    filter: (payload, _vars, ctx) =>
+      String(payload.taskUpdated.companyId) === String(ctx.wsUser?.companyId),
   })
   taskUpdated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_UPDATED);
   }
 
-  @SkipAuth()
   @Subscription(() => TaskDeletedPayload, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskDeleted.companyId) === String(ctx.wsUser?.companyId),
+      String(payload.taskDeleted.companyId) === String(ctx.wsUser?.companyId),
   })
   taskDeleted() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_DELETED);
