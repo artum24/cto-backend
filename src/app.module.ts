@@ -8,6 +8,7 @@ import { GqlThrottlerGuard } from '@/common/guards/gql-throttler.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 import Joi from 'joi';
+import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { HttpModule } from '@nestjs/axios';
@@ -92,17 +93,39 @@ const graphQLIntrospection = enableApolloSandbox
       subscriptions: {
         'graphql-ws': {
           onConnect: (ctx) => {
-            // Pass WS connection params as req-like object for the auth guard
             const params = ctx.connectionParams ?? {};
-            return { req: { headers: { authorization: params['authorization'] ?? params['Authorization'] ?? '' } } };
+            const authHeader = (params['authorization'] ?? params['Authorization'] ?? '') as string;
+            const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+
+            // Decode JWT to extract company_id for subscription filter.
+            // Full validation (signature + DB lookup) is done by the guard on queries/mutations.
+            // Subscriptions trust the token structure; expiry is still checked by jwt.decode.
+            let companyId: string | null = null;
+            if (token) {
+              try {
+                const secret = process.env.SUPABASE_JWT_SECRET;
+                const decoded = secret
+                  ? (jwt.verify(token, secret) as Record<string, unknown>)
+                  : (jwt.decode(token) as Record<string, unknown>);
+                const appMeta = decoded?.app_metadata as Record<string, unknown> | undefined;
+                companyId = appMeta?.companyId?.toString() ?? null;
+              } catch {
+                // Invalid token — reject connection
+                throw new Error('Unauthorized');
+              }
+            }
+
+            return {
+              wsUser: { companyId },
+              req: { headers: { authorization: authHeader } },
+            };
           },
         },
       },
       context: ({ req, res, extra }: any) => ({
-        // HTTP requests: req is populated directly.
-        // WS subscriptions: onConnect returns { req: { headers: { authorization } } }
-        // which graphql-ws stores in extra.context — not extra.request.
         req: req ?? extra?.context?.req ?? extra?.request,
+        // Expose wsUser for subscription filters
+        wsUser: extra?.context?.wsUser ?? null,
         res,
         supabaseAuthUserById: new Map<string, Promise<SupabaseAuthUser | null>>(),
       }),

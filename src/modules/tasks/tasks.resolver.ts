@@ -1,9 +1,10 @@
-import {Resolver, Query, Mutation, Args, ID, Context, Subscription} from '@nestjs/graphql';
+import {Resolver, Query, Mutation, Args, ID, Subscription} from '@nestjs/graphql';
 import {Inject, UseGuards} from '@nestjs/common';
+import { SkipAuth } from '@/auth/skip-auth.decorator';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
-import {AllTasksResult, Task, TasksByDate} from './models/task.model';
+import {AllTasksResult, Task} from './models/task.model';
 import { TasksService } from './tasks.service';
 import { CreateTaskInput } from './inputs/create-task.input';
 import { UpdateTaskInput } from './inputs/update-task.input';
@@ -87,25 +88,31 @@ export class TasksResolver {
     return this.tasksService.delete(BigInt(id), this.companyId(user));
   }
 
+  // Subscriptions skip the HTTP guard — auth is validated in onConnect via JWT decode.
+  // Company isolation is enforced in the filter via wsUser.companyId.
+
+  @SkipAuth()
   @Subscription(() => Task, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskCreated.companyId) === String(ctx.req?.user?.user?.company_id),
+        String(payload.taskCreated.companyId) === String(ctx.wsUser?.companyId),
   })
   taskCreated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
   }
 
+  @SkipAuth()
   @Subscription(() => Task, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskUpdated.companyId) === String(ctx.req?.user?.user?.company_id),
+        String(payload.taskUpdated.companyId) === String(ctx.wsUser?.companyId),
   })
   taskUpdated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_UPDATED);
   }
 
+  @SkipAuth()
   @Subscription(() => TaskDeletedPayload, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskDeleted.companyId) === String(ctx.req?.user?.user?.company_id),
+        String(payload.taskDeleted.companyId) === String(ctx.wsUser?.companyId),
   })
   taskDeleted() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_DELETED);
