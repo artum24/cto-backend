@@ -98,8 +98,11 @@ const graphQLIntrospection = enableApolloSandbox
           },
         },
       },
-      context: ({ req, res, extra }: { req?: Request; res?: Response; extra?: { request: { headers: Record<string, string> } } }) => ({
-        req: req ?? extra?.request,
+      context: ({ req, res, extra }: any) => ({
+        // HTTP requests: req is populated directly.
+        // WS subscriptions: onConnect returns { req: { headers: { authorization } } }
+        // which graphql-ws stores in extra.context — not extra.request.
+        req: req ?? extra?.context?.req ?? extra?.request,
         res,
         supabaseAuthUserById: new Map<string, Promise<SupabaseAuthUser | null>>(),
       }),
