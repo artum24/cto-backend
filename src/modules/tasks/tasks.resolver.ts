@@ -108,8 +108,12 @@ export class TasksResolver {
   }
 
   @Subscription(() => Task, {
-    filter: (payload, _vars, ctx) =>
-      String(payload.taskUpdated.companyId) === String(ctx.wsUser?.companyId),
+    filter: (payload, _vars, ctx) => {
+      const payloadId = payload?.taskUpdated?.companyId;
+      const wsId = ctx?.wsUser?.companyId;
+      console.log(`[Sub filter taskUpdated] payload.companyId=${payloadId} wsUser.companyId=${wsId} ctx keys=${Object.keys(ctx ?? {}).join(',')}`);
+      return String(payloadId) === String(wsId);
+    },
   })
   taskUpdated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_UPDATED);

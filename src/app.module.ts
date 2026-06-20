@@ -89,6 +89,10 @@ const graphQLIntrospection = enableApolloSandbox
       plugins: enableApolloSandbox
         ? [ApolloServerPluginLandingPageLocalDefault()]
         : [],
+      formatError: (formattedError, error) => {
+        console.error('[Apollo formatError]', formattedError.message, (error as Error)?.message, (error as any)?.originalError?.message);
+        return formattedError;
+      },
       // Enable WebSocket subscriptions via graphql-ws protocol
       subscriptions: {
         'graphql-ws': {
