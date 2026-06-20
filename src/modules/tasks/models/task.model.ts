@@ -2,15 +2,7 @@ import {Field, ID, Int, ObjectType} from "@nestjs/graphql";
 import {TaskStatus} from "@/modules/tasks/enums/task-status.enum";
 import {Vehicle} from "@/modules/vehicle/models/vehicle.model";
 import {Workspace} from "@/modules/workspaces/models/workspaces.model";
-
-@ObjectType()
-export class Performer {
-    @Field(() => ID)
-    id!: string;
-
-    @Field(() => String, { nullable: true })
-    email?: string | null;
-}
+import {User} from "@/modules/user/models/user.model";
 
 @ObjectType()
 export class Task {
@@ -41,8 +33,8 @@ export class Task {
     @Field(() => Workspace, { nullable: true })
     workspace?: Workspace | null;
 
-    @Field(() => Performer, { nullable: true })
-    performer?: Performer | null;
+    @Field(() => User, { nullable: true })
+    performer?: User | null;
 
     @Field(() => Date)
     created_at!: Date;
