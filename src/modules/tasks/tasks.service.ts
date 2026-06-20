@@ -44,10 +44,13 @@ export class TasksService {
     if (status === TaskStatus.FINISHED) return status;
     if (task.end_time) {
       // Times are stored as "local time in UTC" (no timezone offset applied on save).
-      // To compare correctly, shift now() by the local timezone offset so both sides
-      // use the same naive representation.
-      const offsetMs = new Date().getTimezoneOffset() * 60 * 1000;
-      const localNowAsUtc = new Date(Date.now() - offsetMs);
+      // Shift now() by the business timezone offset so comparison is apples-to-apples.
+      // Falls back to TZ env var offset, then to TIMEZONE_OFFSET_HOURS env var.
+      const envOffsetHours = parseInt(process.env.TIMEZONE_OFFSET_HOURS ?? '0', 10);
+      const tzOffsetMs = envOffsetHours
+        ? envOffsetHours * 60 * 60 * 1000
+        : -new Date().getTimezoneOffset() * 60 * 1000; // works if TZ=Europe/Kyiv is set
+      const localNowAsUtc = new Date(Date.now() + tzOffsetMs);
       if (task.end_time < localNowAsUtc) return TaskStatus.OVERDUE;
     }
     return status;
