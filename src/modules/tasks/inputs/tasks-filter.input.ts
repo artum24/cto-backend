@@ -1,4 +1,4 @@
-import {Field, ID, InputType} from "@nestjs/graphql";
+import {Field, ID, InputType, Int} from "@nestjs/graphql";
 import {TaskStatus} from "@/modules/tasks/enums/task-status.enum";
 import {IsOptional} from "class-validator";
 
@@ -15,4 +15,20 @@ export class TasksFilterInput {
     @Field(() => [TaskStatus], { nullable: true })
     @IsOptional()
     statuses?: TaskStatus[];
+
+    @Field(() => Date, { nullable: true })
+    @IsOptional()
+    dateFrom?: Date;
+
+    @Field(() => Date, { nullable: true })
+    @IsOptional()
+    dateTo?: Date;
+
+    @Field(() => Int, { nullable: true, defaultValue: 1 })
+    @IsOptional()
+    page?: number;
+
+    @Field(() => Int, { nullable: true, defaultValue: 30 })
+    @IsOptional()
+    limit?: number;
 }

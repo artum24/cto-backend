@@ -1,59 +1,124 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { TaskStatus } from '../enums/task-status.enum';
-import {Vehicle} from "@/modules/vehicle/models/vehicle.model";
-import {Workspace} from "@/modules/workspaces/models/workspaces.model";
-import {User} from "@/modules/user/models/user.model";
+import {Field, ID, Int, ObjectType} from "@nestjs/graphql";
+import {TaskStatus} from "@/modules/tasks/enums/task-status.enum";
+
+@ObjectType()
+export class Vehicle {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => String, { nullable: true })
+    vehicleMakeName?: string | null;
+
+    @Field(() => String, { nullable: true })
+    vehicleModelName?: string | null;
+
+    @Field(() => Int, { nullable: true })
+    vehicleYear?: number | null;
+
+    @Field(() => Client, { nullable: true })
+    client?: Client | null;
+}
+
+@ObjectType()
+export class Client {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => String, { nullable: true })
+    name?: string | null;
+
+    @Field(() => String, { nullable: true })
+    phone?: string | null;
+}
+
+@ObjectType()
+export class Workspace {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => String, { nullable: true })
+    title?: string | null;
+
+    @Field(() => Number, { nullable: true })
+    number?: number | null;
+}
+
+@ObjectType()
+export class Performer {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => String, { nullable: true })
+    email?: string | null;
+}
 
 @ObjectType()
 export class Task {
-  @Field(() => ID)
-  id!: string;
+    @Field(() => ID)
+    id!: string;
 
-  @Field(() => String, { nullable: true })
-  title?: string | null;
+    @Field(() => String, { nullable: true })
+    title?: string | null;
 
-  @Field(() => TaskStatus)
-  status!: TaskStatus;
+    @Field(() => TaskStatus)
+    status!: TaskStatus;
 
-  @Field(() => ID)
-  vehicle_id!: string;
+    @Field(() => Date, { nullable: true })
+    start_time?: Date | null;
 
-  @Field(() => Vehicle, { nullable: true })
-  vehicle?: Vehicle | null;
+    @Field(() => Date, { nullable: true })
+    end_time?: Date | null;
 
-  @Field(() => ID, { nullable: true })
-  workspace_id?: string | null;
+    @Field(() => ID, { nullable: true })
+    workspace_id?: string | null;
 
-  @Field(() => Workspace, { nullable: true })
-  workspace?: Workspace | null;
+    @Field(() => ID, { nullable: true })
+    performer_id?: string | null;
 
-  @Field(() => ID, { nullable: true })
-  performer_id?: string | null;
+    @Field(() => Vehicle, { nullable: true })
+    vehicle?: Vehicle | null;
 
-  @Field(() => User, { nullable: true })
-  performer?: User | null;
+    @Field(() => Workspace, { nullable: true })
+    workspace?: Workspace | null;
 
-  @Field(() => Date, { nullable: true })
-  start_time?: Date | null;
+    @Field(() => Performer, { nullable: true })
+    performer?: Performer | null;
 
-  @Field(() => Date, { nullable: true })
-  end_time?: Date | null;
+    @Field(() => Date)
+    created_at!: Date;
 
-  @Field()
-  created_at!: Date;
+    @Field(() => Date)
+    updated_at!: Date;
 
-  @Field()
-  updated_at!: Date;
+    @Field(() => ID)
+    vehicle_id!: string;
+
+    companyId?: string | null;
 }
 
 @ObjectType()
 export class TasksByDate {
-  @Field(() => String)
-  date!: string;
+    @Field(() => String)
+    date!: string;
 
-  @Field(() => Number)
-  count!: number;
+    @Field(() => Number)
+    count!: number;
 
-  @Field(() => [Task])
-  tasks!: Task[];
+    @Field(() => [Task])
+    tasks!: Task[];
+}
+
+@ObjectType()
+export class AllTasksResult {
+    @Field(() => [TasksByDate])
+    groups!: TasksByDate[];
+
+    @Field(() => Int)
+    totalCount!: number;
+
+    @Field(() => Int)
+    totalPages!: number;
+
+    @Field(() => Int)
+    page!: number;
 }

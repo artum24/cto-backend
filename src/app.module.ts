@@ -88,13 +88,20 @@ const graphQLIntrospection = enableApolloSandbox
       plugins: enableApolloSandbox
         ? [ApolloServerPluginLandingPageLocalDefault()]
         : [],
-      context: ({ req, res }: { req: Request; res: Response }) => ({
-        req,
+      // Enable WebSocket subscriptions via graphql-ws protocol
+      subscriptions: {
+        'graphql-ws': {
+          onConnect: (ctx) => {
+            // Pass WS connection params as req-like object for the auth guard
+            const params = ctx.connectionParams ?? {};
+            return { req: { headers: { authorization: params['authorization'] ?? params['Authorization'] ?? '' } } };
+          },
+        },
+      },
+      context: ({ req, res, extra }: { req?: Request; res?: Response; extra?: { request: { headers: Record<string, string> } } }) => ({
+        req: req ?? extra?.request,
         res,
-        supabaseAuthUserById: new Map<
-          string,
-          Promise<SupabaseAuthUser | null>
-        >(),
+        supabaseAuthUserById: new Map<string, Promise<SupabaseAuthUser | null>>(),
       }),
     }),
 

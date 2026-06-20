@@ -32,16 +32,18 @@ export class GraphQLExceptionFilter
   }
 
   catch(exception: unknown, host: ArgumentsHost) {
-    // Global filter runs for all HTTP routes; only normalize errors for GraphQL HTTP.
-    if (host.getType() === 'http') {
+    const type = host.getType<'http' | 'graphql' | 'ws' | 'rpc'>();
+
+    if (type === 'http') {
+      // Only normalize errors for the GraphQL HTTP endpoint; pass REST errors through.
       const req = host.switchToHttp().getRequest<{ url?: string; path?: string }>();
       const path = (req.path ?? req.url?.split('?')[0] ?? '').split('?')[0];
       const gqlPath = process.env.GRAPHQL_PATH ?? DEFAULT_GQL_PATH;
       if (path !== gqlPath && !path.startsWith(`${gqlPath}/`)) {
         return super.catch(exception, host);
       }
-    } else {
-      // ws / rpc / etc. — BaseExceptionFilter needs HTTP response; rethrow for other contexts
+    } else if (type !== 'graphql') {
+      // ws / rpc — BaseExceptionFilter needs HTTP response; rethrow for other contexts
       throw exception;
     }
 

@@ -1,18 +1,22 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import {Resolver, Query, Mutation, Args, ID, Context, Subscription} from '@nestjs/graphql';
+import {Inject, UseGuards} from '@nestjs/common';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
-import {Task, TasksByDate} from './models/task.model';
+import {AllTasksResult, Task, TasksByDate} from './models/task.model';
 import { TasksService } from './tasks.service';
 import { CreateTaskInput } from './inputs/create-task.input';
 import { UpdateTaskInput } from './inputs/update-task.input';
 import {TasksFilterInput} from "@/modules/tasks/inputs/tasks-filter.input";
+import {TASK_PUB_SUB} from "@/modules/tasks/task-pubsub.provider";
+import {PubSub} from "graphql-subscriptions";
+import {TaskEventsEnum} from "@/modules/tasks/enums/task-events.enum";
+import {TaskDeletedPayload} from "@/modules/tasks/models/task-deleted.model";
 
 @Resolver(() => Task)
 @UseGuards(SupabaseAuthGuard)
 export class TasksResolver {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService, @Inject(TASK_PUB_SUB) private pubSub: PubSub) {}
 
   private companyId(user: AuthContextUser): bigint {
     const u = user.user;
@@ -41,7 +45,7 @@ export class TasksResolver {
     return this.tasksService.findByDate(date, this.companyId(user));
   }
 
-  @Query(() => [TasksByDate], { name: 'allTasks' })
+  @Query(() => AllTasksResult, { name: 'allTasks' })
   async getAllTasks(
       @Args('filter', { nullable: true }) filter: TasksFilterInput,
       @CurrentUser() user: AuthContextUser,
@@ -52,6 +56,10 @@ export class TasksResolver {
       workspaceIds: filter?.workspaceIds?.map(id => BigInt(id)) ?? [],
       performerIds: filter?.performerIds ?? [],
       statuses: filter?.statuses ?? [],
+      dateFrom: filter?.dateFrom,
+      dateTo: filter?.dateTo,
+      page: filter?.page ?? 1,
+      limit: filter?.limit ?? 30,
     });
   }
 
@@ -77,5 +85,29 @@ export class TasksResolver {
     @CurrentUser() user: AuthContextUser,
   ) {
     return this.tasksService.delete(BigInt(id), this.companyId(user));
+  }
+
+  @Subscription(() => Task, {
+    filter: (payload, _vars, ctx) =>
+        String(payload.taskCreated.companyId) === String(ctx.req?.user?.company_id),
+  })
+  taskCreated() {
+    return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
+  }
+
+  @Subscription(() => Task, {
+    filter: (payload, _vars, ctx) =>
+        String(payload.taskUpdated.companyId) === String(ctx.req?.user?.company_id),
+  })
+  taskUpdated() {
+    return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_UPDATED);
+  }
+
+  @Subscription(() => TaskDeletedPayload, {
+    filter: (payload, _vars, ctx) =>
+        String(payload.taskDeleted.companyId) === String(ctx.req?.user?.company_id),
+  })
+  taskDeleted() {
+    return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_DELETED);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {Injectable, NotFoundException, ForbiddenException, Inject} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { CreateTaskInput } from './inputs/create-task.input';
@@ -11,6 +11,9 @@ import {
 import {Prisma} from "@prisma/client";
 import dayjs from "dayjs";
 import {Task} from "@/modules/tasks/models/task.model";
+import {TASK_PUB_SUB} from "@/modules/tasks/task-pubsub.provider";
+import {PubSub} from "graphql-subscriptions";
+import {TaskEventsEnum} from "@/modules/tasks/enums/task-events.enum";
 
 type TaskDB = Prisma.tasksGetPayload<{
   include: {
@@ -34,13 +37,18 @@ const TASK_INCLUDE = {
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, @Inject(TASK_PUB_SUB) private pubSub: PubSub) {}
 
   private mapStatus(task: TaskDB): TaskStatus {
     const status = STATUS_INT_TO_ENUM[task.status];
-    const isOverdue = task.end_time && task.end_time < new Date() && status !== TaskStatus.FINISHED;
-    if (isOverdue) {
-      return TaskStatus.OVERDUE;
+    if (status === TaskStatus.FINISHED) return status;
+    if (task.end_time) {
+      // Times are stored as "local time in UTC" (no timezone offset applied on save).
+      // To compare correctly, shift now() by the local timezone offset so both sides
+      // use the same naive representation.
+      const offsetMs = new Date().getTimezoneOffset() * 60 * 1000;
+      const localNowAsUtc = new Date(Date.now() - offsetMs);
+      if (task.end_time < localNowAsUtc) return TaskStatus.OVERDUE;
     }
     return status;
   }
@@ -51,6 +59,8 @@ export class TasksService {
     return {
       ...bigintToString(rest),
       status: this.mapStatus(task),
+      // companyId is included so the subscription filter can check tenant ownership
+      companyId: clients?.company_id ? String(clients.company_id) : null,
       vehicle: vehicles ? {
         ...bigintToString(vehicleRest),
         vehicle_make_name: vehicle_makes?.vehicle_make_name ?? null,
@@ -104,20 +114,37 @@ export class TasksService {
     return tasks.map((t) => this.toGraphQL(t));
   }
 
-  async findAllGrouped({workspaceIds, companyId, performerIds = [], statuses = []}: {workspaceIds: bigint[], companyId: bigint, performerIds?: string[], statuses?: TaskStatus[]}) {
-    const tasks = await this.prisma.tasks.findMany({
-      where: {
-        vehicles: {
-          clients: {
-            company_id: companyId
-          }
+  async findAllGrouped({
+    workspaceIds, companyId, performerIds = [], statuses = [],
+    dateFrom, dateTo, page = 1, limit = 30,
+  }: {
+    workspaceIds: bigint[]; companyId: bigint; performerIds?: string[];
+    statuses?: TaskStatus[]; dateFrom?: Date; dateTo?: Date; page?: number; limit?: number;
+  }) {
+    const where = {
+      vehicles: { clients: { company_id: companyId } },
+      ...(workspaceIds.length > 0 && { workspace_id: { in: workspaceIds } }),
+      ...(performerIds.length > 0 && { performer_id: { in: performerIds } }),
+      ...(statuses?.length > 0 && { status: { in: statuses.map(s => STATUS_ENUM_TO_INT[s]) } }),
+      ...(dateFrom || dateTo ? {
+        start_time: {
+          ...(dateFrom && { gte: dateFrom }),
+          ...(dateTo && { lte: dateTo }),
         },
-        ...(workspaceIds.length > 0 && { workspace_id: { in: workspaceIds } }),
-        ...(performerIds.length > 0 && { performer_id: { in: performerIds } }),
-        ...(statuses?.length > 0 && { status: { in: statuses.map(s => STATUS_ENUM_TO_INT[s]) } }),
-      },
-      include: TASK_INCLUDE,
-    })
+      } : {}),
+    };
+
+    const [tasks, totalCount] = await this.prisma.$transaction([
+      this.prisma.tasks.findMany({
+        where,
+        include: TASK_INCLUDE,
+        orderBy: { start_time: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.tasks.count({ where }),
+    ]);
+
     const groupedMap = new Map<string, {tasks: TaskDB[], count: number}>();
     for (const task of tasks) {
       const date = task.start_time
@@ -129,11 +156,14 @@ export class TasksService {
       groupedMap.get(date)!.tasks.push(task);
       groupedMap.get(date)!.count++;
     }
-    return Array.from(groupedMap.entries()).map(([date, {tasks, count}]) => ({
+
+    const groups = Array.from(groupedMap.entries()).map(([date, {tasks, count}]) => ({
       date,
       count,
       tasks: tasks.map(t => this.toGraphQL(t)),
     }));
+
+    return { groups, totalCount, totalPages: Math.ceil(totalCount / limit), page };
   }
 
   async create(input: CreateTaskInput, companyId: bigint) {
@@ -161,6 +191,8 @@ export class TasksService {
       },
       include: TASK_INCLUDE,
     });
+    await this.pubSub.publish(TaskEventsEnum.TASK_CREATED, { taskCreated: this.toGraphQL(task) });
+
     return this.toGraphQL(task);
   }
 
@@ -193,12 +225,17 @@ export class TasksService {
       },
       include: TASK_INCLUDE,
     });
+    await this.pubSub.publish(TaskEventsEnum.TASK_UPDATED, { taskUpdated: this.toGraphQL(updated) });
     return this.toGraphQL(updated);
   }
 
   async delete(id: bigint, companyId: bigint) {
     const task = await this.assertCompanyOwnership(id, companyId);
     await this.prisma.tasks.delete({ where: { id } });
+    await this.pubSub.publish(TaskEventsEnum.TASK_DELETED, {
+      taskDeleted: { id: String(task.id), companyId: String(task.vehicles.clients.company_id) }
+    });
+
     return this.toGraphQL(task);
   }
 }

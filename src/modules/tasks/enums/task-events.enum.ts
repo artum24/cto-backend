@@ -1,0 +1,5 @@
+export enum TaskEventsEnum {
+    TASK_DELETED = 'TASK_DELETED',
+    TASK_UPDATED = 'TASK_UPDATED',
+    TASK_CREATED = 'TASK_CREATED',
+}
