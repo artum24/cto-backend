@@ -2,6 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AllTasksResult {
+  groups: [TasksByDate!]!
+  page: Int!
+  totalCount: Int!
+  totalPages: Int!
+}
+
 type Category {
   archived: Boolean!
   count: Int
@@ -341,6 +348,11 @@ enum OrderByValues {
   DESC
 }
 
+type Performer {
+  email: String
+  id: ID!
+}
+
 """Possible responses to phone validation"""
 enum PhoneValidationValues {
   INVALID
@@ -348,7 +360,7 @@ enum PhoneValidationValues {
 }
 
 type Query {
-  allTasks(filter: TasksFilterInput): [TasksByDate!]!
+  allTasks(filter: TasksFilterInput): AllTasksResult!
   categories(archived: Boolean): [Category!]!
   client(id: ID!): Client!
   clients(includeArchived: Boolean = false): [Client!]!
@@ -410,6 +422,12 @@ type Storage {
   name: String!
 }
 
+type Subscription {
+  taskCreated: Task!
+  taskDeleted: TaskDeletedPayload!
+  taskUpdated: Task!
+}
+
 type Suplier {
   archived: Boolean
   comment: String
@@ -428,7 +446,7 @@ type Task {
   created_at: DateTime!
   end_time: DateTime
   id: ID!
-  performer: User
+  performer: Performer
   performer_id: ID
   start_time: DateTime
   status: TaskStatus!
@@ -438,6 +456,11 @@ type Task {
   vehicle_id: ID!
   workspace: Workspace
   workspace_id: ID
+}
+
+type TaskDeletedPayload {
+  companyId: String!
+  id: ID!
 }
 
 """Possible statuses for a task"""
@@ -462,6 +485,10 @@ type TasksByDate {
 }
 
 input TasksFilterInput {
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int = 30
+  page: Int = 1
   performerIds: [ID!]
   statuses: [TaskStatus!]
   workspaceIds: [ID!]
@@ -677,6 +704,7 @@ type VehicleUpdateOutput {
 }
 
 input VehiclesInput {
+  clientId: ID
   limit: Int = 25
   orderBy: OrderByInput
   page: Int = 1

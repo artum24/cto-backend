@@ -1,47 +1,7 @@
 import {Field, ID, Int, ObjectType} from "@nestjs/graphql";
 import {TaskStatus} from "@/modules/tasks/enums/task-status.enum";
-
-@ObjectType()
-export class Vehicle {
-    @Field(() => ID)
-    id!: string;
-
-    @Field(() => String, { nullable: true })
-    vehicleMakeName?: string | null;
-
-    @Field(() => String, { nullable: true })
-    vehicleModelName?: string | null;
-
-    @Field(() => Int, { nullable: true })
-    vehicleYear?: number | null;
-
-    @Field(() => Client, { nullable: true })
-    client?: Client | null;
-}
-
-@ObjectType()
-export class Client {
-    @Field(() => ID)
-    id!: string;
-
-    @Field(() => String, { nullable: true })
-    name?: string | null;
-
-    @Field(() => String, { nullable: true })
-    phone?: string | null;
-}
-
-@ObjectType()
-export class Workspace {
-    @Field(() => ID)
-    id!: string;
-
-    @Field(() => String, { nullable: true })
-    title?: string | null;
-
-    @Field(() => Number, { nullable: true })
-    number?: number | null;
-}
+import {Vehicle} from "@/modules/vehicle/models/vehicle.model";
+import {Workspace} from "@/modules/workspaces/models/workspaces.model";
 
 @ObjectType()
 export class Performer {
