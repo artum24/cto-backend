@@ -11,8 +11,8 @@ import {
 import {Prisma} from "@prisma/client";
 import dayjs from "dayjs";
 import {Task} from "@/modules/tasks/models/task.model";
-import {TASK_PUB_SUB} from "@/modules/tasks/task-pubsub.provider";
-import {PubSub} from "graphql-subscriptions";
+import {TASK_PUB_SUB, TaskPubSub} from "@/modules/tasks/task-pubsub.provider";
+
 import {TaskEventsEnum} from "@/modules/tasks/enums/task-events.enum";
 
 type TaskDB = Prisma.tasksGetPayload<{
@@ -37,7 +37,7 @@ const TASK_INCLUDE = {
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService, @Inject(TASK_PUB_SUB) private pubSub: PubSub) {}
+  constructor(private readonly prisma: PrismaService, @Inject(TASK_PUB_SUB) private pubSub: TaskPubSub) {}
 
   private mapStatus(task: TaskDB): TaskStatus {
     const status = STATUS_INT_TO_ENUM[task.status];

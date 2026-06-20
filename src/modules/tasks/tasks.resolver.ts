@@ -9,15 +9,15 @@ import { TasksService } from './tasks.service';
 import { CreateTaskInput } from './inputs/create-task.input';
 import { UpdateTaskInput } from './inputs/update-task.input';
 import {TasksFilterInput} from "@/modules/tasks/inputs/tasks-filter.input";
-import {TASK_PUB_SUB} from "@/modules/tasks/task-pubsub.provider";
-import {PubSub} from "graphql-subscriptions";
+import {TASK_PUB_SUB, TaskPubSub} from "@/modules/tasks/task-pubsub.provider";
+
 import {TaskEventsEnum} from "@/modules/tasks/enums/task-events.enum";
 import {TaskDeletedPayload} from "@/modules/tasks/models/task-deleted.model";
 
 @Resolver(() => Task)
 @UseGuards(SupabaseAuthGuard)
 export class TasksResolver {
-  constructor(private readonly tasksService: TasksService, @Inject(TASK_PUB_SUB) private pubSub: PubSub) {}
+  constructor(private readonly tasksService: TasksService, @Inject(TASK_PUB_SUB) private pubSub: TaskPubSub) {}
 
   private companyId(user: AuthContextUser): bigint {
     const u = user.user;
@@ -93,11 +93,19 @@ export class TasksResolver {
 
   @SkipAuth()
   @Subscription(() => Task, {
-    filter: (payload, _vars, ctx) =>
-        String(payload.taskCreated.companyId) === String(ctx.wsUser?.companyId),
+    filter: (payload, _vars, ctx) => {
+      console.log('[Sub filter] taskCreated companyId:', payload?.taskCreated?.companyId, 'wsUser:', ctx?.wsUser);
+      return String(payload.taskCreated.companyId) === String(ctx.wsUser?.companyId);
+    },
   })
   taskCreated() {
-    return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
+    console.log('[Sub] taskCreated called, pubSub:', !!this.pubSub);
+    try {
+      return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
+    } catch (e) {
+      console.error('[Sub] taskCreated error:', e);
+      throw e;
+    }
   }
 
   @SkipAuth()
