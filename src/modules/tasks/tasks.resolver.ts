@@ -89,7 +89,7 @@ export class TasksResolver {
 
   @Subscription(() => Task, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskCreated.companyId) === String(ctx.req?.user?.company_id),
+        String(payload.taskCreated.companyId) === String(ctx.req?.user?.user?.company_id),
   })
   taskCreated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
@@ -97,7 +97,7 @@ export class TasksResolver {
 
   @Subscription(() => Task, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskUpdated.companyId) === String(ctx.req?.user?.company_id),
+        String(payload.taskUpdated.companyId) === String(ctx.req?.user?.user?.company_id),
   })
   taskUpdated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_UPDATED);
@@ -105,7 +105,7 @@ export class TasksResolver {
 
   @Subscription(() => TaskDeletedPayload, {
     filter: (payload, _vars, ctx) =>
-        String(payload.taskDeleted.companyId) === String(ctx.req?.user?.company_id),
+        String(payload.taskDeleted.companyId) === String(ctx.req?.user?.user?.company_id),
   })
   taskDeleted() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_DELETED);
