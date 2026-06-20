@@ -96,32 +96,30 @@ export class TasksResolver {
     return this.tasksService.delete(BigInt(id), this.companyId(user));
   }
 
-  // ─── Subscriptions — no guard, auth done in onConnect ────────────────────────
+  // ─── Subscriptions — guard validates JWT + DB lookup at connection time ─────────
 
+  @UseGuards(SupabaseAuthGuard)
   @Subscription(() => Task, {
     filter: (payload, _vars, ctx) =>
-      String(payload.taskCreated.companyId) === String(ctx.wsUser?.companyId),
+      String(payload.taskCreated.companyId) === String(ctx.req?.user?.user?.company_id),
   })
   taskCreated() {
-    console.log('[Sub] taskCreated called');
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_CREATED);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Subscription(() => Task, {
-    filter: (payload, _vars, ctx) => {
-      const payloadId = payload?.taskUpdated?.companyId;
-      const wsId = ctx?.wsUser?.companyId;
-      console.log(`[Sub filter taskUpdated] payload.companyId=${payloadId} wsUser.companyId=${wsId} ctx keys=${Object.keys(ctx ?? {}).join(',')}`);
-      return String(payloadId) === String(wsId);
-    },
+    filter: (payload, _vars, ctx) =>
+      String(payload.taskUpdated.companyId) === String(ctx.req?.user?.user?.company_id),
   })
   taskUpdated() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_UPDATED);
   }
 
+  @UseGuards(SupabaseAuthGuard)
   @Subscription(() => TaskDeletedPayload, {
     filter: (payload, _vars, ctx) =>
-      String(payload.taskDeleted.companyId) === String(ctx.wsUser?.companyId),
+      String(payload.taskDeleted.companyId) === String(ctx.req?.user?.user?.company_id),
   })
   taskDeleted() {
     return this.pubSub.asyncIterableIterator(TaskEventsEnum.TASK_DELETED);

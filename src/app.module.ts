@@ -126,10 +126,8 @@ const graphQLIntrospection = enableApolloSandbox
       },
       context: ({ req, res, extra }: any) => ({
         // HTTP: req is the Express request
-        // WS: wsReq was stored in ctx.extra by onConnect
+        // WS: wsReq stored in ctx.extra by onConnect (graphql-ws v6 doesn't persist onConnect return in extra.context)
         req: req ?? extra?.wsReq ?? extra?.request,
-        // wsUser stored in ctx.extra by onConnect (not in extra.context — graphql-ws v6 doesn't persist onConnect return)
-        wsUser: extra?.wsUser ?? null,
         res,
         supabaseAuthUserById: new Map<string, Promise<SupabaseAuthUser | null>>(),
       }),

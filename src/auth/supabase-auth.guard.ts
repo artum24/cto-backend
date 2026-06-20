@@ -12,7 +12,6 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { SupabaseAdminClient } from './supabase.client';
 import { ALLOW_UNREGISTERED_APP_USER_KEY } from './allow-unregistered-app-user.decorator';
-import { SKIP_AUTH_KEY } from './skip-auth.decorator';
 import type { users, companies } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
@@ -37,12 +36,6 @@ export class SupabaseAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const skipAuth = this.reflector.getAllAndOverride<boolean>(SKIP_AUTH_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (skipAuth) return true;
-
     const { req } = this.getRequest(context);
     const token = this.extractToken(req);
     const { authUserId, supabaseUser } = await this.fetchSupabaseUser(token);

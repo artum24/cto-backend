@@ -8,9 +8,7 @@ export class TaskPubSub {
   private listeners = new Map<string, Set<(payload: unknown) => void>>();
 
   publish(trigger: string, payload: unknown): void {
-    const subs = this.listeners.get(trigger);
-    console.log(`[PubSub] publish "${trigger}" → ${subs?.size ?? 0} listener(s)`);
-    subs?.forEach((fn) => fn(payload));
+    this.listeners.get(trigger)?.forEach((fn) => fn(payload));
   }
 
   asyncIterableIterator<T>(trigger: string): AsyncIterableIterator<T> {
@@ -29,7 +27,6 @@ export class TaskPubSub {
       this.listeners.set(trigger, new Set());
     }
     this.listeners.get(trigger)!.add(listener as (p: unknown) => void);
-    console.log(`[PubSub] asyncIterableIterator "${trigger}" → now ${this.listeners.get(trigger)!.size} listener(s)`);
 
     const iterator: AsyncIterableIterator<T> = {
       [Symbol.asyncIterator]() {
