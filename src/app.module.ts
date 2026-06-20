@@ -101,9 +101,6 @@ const graphQLIntrospection = enableApolloSandbox
             const authHeader = (params['authorization'] ?? params['Authorization'] ?? '') as string;
             const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
-            // Decode JWT to extract company_id for subscription filter.
-            // Full validation (signature + DB lookup) is done by the guard on queries/mutations.
-            // Subscriptions trust the token structure; expiry is still checked by jwt.decode.
             let companyId: string | null = null;
             if (token) {
               try {
@@ -114,22 +111,25 @@ const graphQLIntrospection = enableApolloSandbox
                 const appMeta = decoded?.app_metadata as Record<string, unknown> | undefined;
                 companyId = appMeta?.companyId?.toString() ?? null;
               } catch {
-                // Invalid token — reject connection
                 throw new Error('Unauthorized');
               }
             }
 
-            return {
-              wsUser: { companyId },
-              req: { headers: { authorization: authHeader } },
-            };
+            // graphql-ws v6: onConnect return value is ONLY sent as connection_ack payload.
+            // To persist data for subsequent subscription filters, mutate ctx.extra directly.
+            (ctx.extra as Record<string, unknown>).wsUser = { companyId };
+            (ctx.extra as Record<string, unknown>).wsReq = { headers: { authorization: authHeader } };
+
+            return { wsUser: { companyId } }; // sent to client as connection_ack payload
           },
         },
       },
       context: ({ req, res, extra }: any) => ({
-        req: req ?? extra?.context?.req ?? extra?.request,
-        // Expose wsUser for subscription filters
-        wsUser: extra?.context?.wsUser ?? null,
+        // HTTP: req is the Express request
+        // WS: wsReq was stored in ctx.extra by onConnect
+        req: req ?? extra?.wsReq ?? extra?.request,
+        // wsUser stored in ctx.extra by onConnect (not in extra.context — graphql-ws v6 doesn't persist onConnect return)
+        wsUser: extra?.wsUser ?? null,
         res,
         supabaseAuthUserById: new Map<string, Promise<SupabaseAuthUser | null>>(),
       }),
