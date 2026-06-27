@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
@@ -258,6 +258,17 @@ export class DetailsService {
       data: { archived: true, archived_at: now, updated_at: now },
     });
     return bigintToString(row);
+  }
+
+  async removeDetailHistory(id: bigint, companyId: bigint): Promise<boolean> {
+    const record = await this.prisma.detail_histories.findUnique({
+      where: { id },
+      include: { storages: { select: { company_id: true } } },
+    });
+    if (!record) throw new NotFoundException('DetailHistory not found');
+    if (record.storages.company_id !== companyId) throw new ForbiddenException('Access denied');
+    await this.prisma.detail_histories.delete({ where: { id } });
+    return true;
   }
 
   async remove(storageId: bigint, id: string): Promise<boolean> {

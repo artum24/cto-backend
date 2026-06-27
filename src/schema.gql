@@ -296,6 +296,7 @@ type Mutation {
   deleteCategory(id: ID!): Boolean!
   deleteClient(id: ID!): Boolean!
   deleteDetail(id: String!): Boolean!
+  deleteDetailHistory(id: ID!): Boolean!
   deleteSuplier(id: String!): Boolean!
   deleteVehicle(id: String!): Boolean!
   detailCountUpdate(count: Int!, id: String!): Detail!

@@ -190,6 +190,16 @@ export class DetailsResolver {
     return this.detailsService.remove(BigInt(storage.id), id);
   }
 
+  @Mutation(() => Boolean, { name: 'deleteDetailHistory' })
+  async deleteDetailHistory(
+    @CurrentUser() user: AuthContextUser,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    const u = user.user;
+    if (!u?.company_id) throw new Error('User is not associated with a company.');
+    return this.detailsService.removeDetailHistory(BigInt(id), BigInt(u.company_id));
+  }
+
   @Query(() => [DetailHistory], { name: 'detailHistories' })
   async detailHistories(
     @CurrentUser() user: AuthContextUser,
