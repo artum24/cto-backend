@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import { SupabaseAuthGuard } from '@/auth/supabase-auth.guard';
 import type { AuthContextUser } from '@/auth/supabase-auth.guard';
 import { CurrentUser } from '@/auth/current-user.decorator';
-import { InvoiceService } from './invoice.service';
+import {InvoiceService} from "@/modules/invoice/invoice.service";
 
 @Controller('invoices')
 @UseGuards(SupabaseAuthGuard)
@@ -26,11 +26,7 @@ export class InvoiceController {
       res.status(403).json({ error: 'User is not associated with a company' });
       return;
     }
-
-    const pdfBuffer = await this.invoiceService.getPdfBuffer(
-      BigInt(taskId),
-      BigInt(u.company_id),
-    );
+    const pdfBuffer = await this.invoiceService.generatePDF(taskId, BigInt(u.company_id));
 
     res.set({
       'Content-Type': 'application/pdf',

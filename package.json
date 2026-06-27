@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@apollo/server": "^4.10.4",
+    "@fontsource/montserrat": "^5.2.8",
     "@nestjs/apollo": "^12.1.0",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.8",
@@ -33,6 +34,7 @@
     "@nestjs/platform-express": "^10.3.8",
     "@nestjs/schedule": "^6.1.3",
     "@nestjs/throttler": "^6.5.0",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@prisma/adapter-pg": "^5.14.0",
     "@prisma/client": "^5.14.0",
     "@supabase/supabase-js": "^2.43.1",

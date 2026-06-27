@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsDecimal, IsOptional, IsString, MaxLength } from 'class-validator';
 
 @InputType()
 export class CreateServiceInput {
@@ -14,4 +14,9 @@ export class CreateServiceInput {
   @IsString()
   @MaxLength(255)
   description?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsDecimal()
+  price?: string;
 }

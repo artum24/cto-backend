@@ -1,6 +1,7 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { DetailHistoryActionType } from '../enums/detail-history-action-type.enum';
 import { DetailHistoryUser } from './detail-history-user.model';
+import { Detail } from './detail.model';
 
 @ObjectType()
 export class DetailHistory {
@@ -27,6 +28,12 @@ export class DetailHistory {
 
   @Field(() => ID, { name: 'taskId', nullable: true })
   task_id?: string | null;
+
+  @Field(() => String, { nullable: true })
+  price?: string | null;
+
+  @Field(() => Detail, { nullable: true })
+  detail?: Detail | null;
 
   @Field(() => Date, { name: 'createdAt' })
   created_at!: Date;

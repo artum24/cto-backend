@@ -11,6 +11,9 @@ export class Service {
   @Field(() => String, { nullable: true })
   description?: string | null;
 
+  @Field(() => String, { nullable: true })
+  price?: string | null;
+
   @Field()
   created_at!: Date;
 

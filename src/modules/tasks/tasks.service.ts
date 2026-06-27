@@ -35,6 +35,12 @@ const TASK_INCLUDE = {
   users: true,
 } satisfies Prisma.tasksInclude
 
+const TASK_DETAIL_INCLUDE = {
+  ...TASK_INCLUDE,
+  vehicle_histories: { include: { services: true } },
+  detail_histories: { include: { details: true } },
+} satisfies Prisma.tasksInclude
+
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService, @Inject(TASK_PUB_SUB) private pubSub: TaskPubSub) {}
@@ -57,8 +63,8 @@ export class TasksService {
     return status;
   }
 
-  private toGraphQL(task: TaskDB) {
-    const { vehicles, workspaces, users, ...rest } = task;
+  private toGraphQL(task: TaskDB & { vehicle_histories?: any[]; detail_histories?: any[] }) {
+    const { vehicles, workspaces, users, vehicle_histories, detail_histories, ...rest } = task as any;
     const { clients, vehicle_makes, vehicle_models, ...vehicleRest } = vehicles ?? {};
     return {
       ...bigintToString(rest),
@@ -73,6 +79,14 @@ export class TasksService {
       } : null,
       workspace: workspaces ? bigintToString(workspaces) : null,
       performer: users ? bigintToString(users) : null,
+      vehicleHistories: vehicle_histories ? vehicle_histories.map((vh: any) => ({
+        ...bigintToString(vh),
+        service: vh.services ? bigintToString(vh.services) : null,
+      })) : null,
+      detailHistories: detail_histories ? detail_histories.map((dh: any) => ({
+        ...bigintToString(dh),
+        detail: dh.details ? bigintToString(dh.details) : null,
+      })) : null,
     };
   }
 
@@ -101,6 +115,19 @@ export class TasksService {
     return task;
   }
 
+  /** Full fetch including vehicle_histories and detail_histories — for the task detail page */
+  private async fetchTaskWithDetails(taskId: bigint, companyId: bigint) {
+    const task = await this.prisma.tasks.findUnique({
+      where: { id: taskId },
+      include: TASK_DETAIL_INCLUDE,
+    });
+    if (!task) throw new NotFoundException(`Task #${taskId} not found`);
+    if ((task as any).vehicles.clients.company_id !== companyId) {
+      throw new ForbiddenException('Access denied');
+    }
+    return task;
+  }
+
   async findAll(companyId: bigint) {
     const tasks = await this.prisma.tasks.findMany({
       where: {
@@ -112,8 +139,8 @@ export class TasksService {
   }
 
   async findOne(id: bigint, companyId: bigint) {
-    const task = await this.assertCompanyOwnership(id, companyId);
-    return this.toGraphQL(task);
+    const task = await this.fetchTaskWithDetails(id, companyId);
+    return this.toGraphQL(task as any);
   }
 
   async findByDate(date: Date, companyId: bigint) {

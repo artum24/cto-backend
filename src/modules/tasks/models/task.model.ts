@@ -3,6 +3,8 @@ import {TaskStatus} from "@/modules/tasks/enums/task-status.enum";
 import {Vehicle} from "@/modules/vehicle/models/vehicle.model";
 import {Workspace} from "@/modules/workspaces/models/workspaces.model";
 import {User} from "@/modules/user/models/user.model";
+import {VehicleHistory} from "@/modules/vehicle-history/models/vehicle-history.model";
+import {DetailHistory} from "@/modules/details/models/detail-history.model";
 
 @ObjectType()
 export class Task {
@@ -35,6 +37,12 @@ export class Task {
 
     @Field(() => User, { nullable: true })
     performer?: User | null;
+
+    @Field(() => [VehicleHistory], { nullable: true })
+    vehicleHistories?: VehicleHistory[] | null;
+
+    @Field(() => [DetailHistory], { nullable: true })
+    detailHistories?: DetailHistory[] | null;
 
     @Field(() => Date)
     created_at!: Date;

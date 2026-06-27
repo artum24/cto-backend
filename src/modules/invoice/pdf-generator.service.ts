@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
+import * as fontkit from '@pdf-lib/fontkit';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface InvoiceLineItem {
   name: string;
@@ -45,11 +48,13 @@ const COL = {
 export class PdfGeneratorService {
   async generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     const doc = await PDFDocument.create();
+    doc.registerFontkit(fontkit);
     const page = doc.addPage([595, 842]); // A4
     const { height } = page.getSize();
 
-    const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
-    const fontRegular = await doc.embedFont(StandardFonts.Helvetica);
+    const fontsDir = path.join(process.cwd(), 'src', 'assets', 'fonts');
+    const fontRegular = await doc.embedFont(fs.readFileSync(path.join(fontsDir, 'Montserrat.ttf')));
+    const fontBold = await doc.embedFont(fs.readFileSync(path.join(fontsDir, 'Montserrat-Bold.ttf')));
 
     const black = rgb(0, 0, 0);
     const gray = rgb(0.5, 0.5, 0.5);

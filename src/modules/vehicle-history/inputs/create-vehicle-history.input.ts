@@ -1,5 +1,5 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDecimal, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class CreateVehicleHistoryInput {
@@ -20,4 +20,9 @@ export class CreateVehicleHistoryInput {
   @Field(() => ID)
   @IsNotEmpty()
   service_id!: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsDecimal()
+  price?: string;
 }
