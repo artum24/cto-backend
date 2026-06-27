@@ -385,6 +385,7 @@ input RecordDetailMovementInput {
   comment: String
   count_diff: Int!
   detailId: String!
+  price: String
   taskId: String
 }
 

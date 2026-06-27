@@ -370,6 +370,7 @@ export class DetailsService {
             input.taskId != null && input.taskId !== ''
               ? BigInt(input.taskId)
               : null,
+          price: input.price ?? null,
           comment: input.comment ?? null,
           created_at: now,
           updated_at: now,

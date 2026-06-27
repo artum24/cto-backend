@@ -52,7 +52,9 @@ export class PdfGeneratorService {
     const page = doc.addPage([595, 842]); // A4
     const { height } = page.getSize();
 
-    const fontsDir = path.join(process.cwd(), 'src', 'assets', 'fonts');
+    const distFontsDir = path.join(__dirname, '..', '..', 'assets', 'fonts');
+    const srcFontsDir = path.join(process.cwd(), 'src', 'assets', 'fonts');
+    const fontsDir = fs.existsSync(distFontsDir) ? distFontsDir : srcFontsDir;
     const fontRegular = await doc.embedFont(fs.readFileSync(path.join(fontsDir, 'Montserrat.ttf')));
     const fontBold = await doc.embedFont(fs.readFileSync(path.join(fontsDir, 'Montserrat-Bold.ttf')));
 
