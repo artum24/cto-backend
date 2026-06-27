@@ -280,10 +280,15 @@ export class DetailsService {
     if (!existing) {
       throw new Error('Detail not found in this storage.');
     }
-    await this.prisma.$transaction(async (tx: PrismaClient) => {
-      await tx.detail_histories.deleteMany({ where: { detail_id: idBigInt } });
-      await tx.details.delete({ where: { id: idBigInt } });
-    });
+    try {
+      await this.prisma.$transaction(async (tx: PrismaClient) => {
+        await tx.detail_histories.deleteMany({ where: { detail_id: idBigInt } });
+        await tx.details.delete({ where: { id: idBigInt } });
+      });
+    } catch (e) {
+      console.error('[removeDetail error]', e);
+      throw e;
+    }
     return true;
   }
 
