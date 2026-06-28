@@ -267,7 +267,18 @@ export class DetailsService {
     });
     if (!record) throw new NotFoundException('DetailHistory not found');
     if (record.storages.company_id !== companyId) throw new ForbiddenException('Access denied');
-    await this.prisma.detail_histories.delete({ where: { id } });
+
+    if (record.count_diff && record.count_diff < 0) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.details.update({
+          where: { id: record.detail_id },
+          data: { count: { increment: Math.abs(record.count_diff!) } },
+        });
+        await tx.detail_histories.delete({ where: { id } });
+      });
+    } else {
+      await this.prisma.detail_histories.delete({ where: { id } });
+    }
     return true;
   }
 
