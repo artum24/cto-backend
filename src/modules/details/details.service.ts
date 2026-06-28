@@ -368,6 +368,8 @@ export class DetailsService {
   ) {
     await this.ensureStorageAccess(storageId);
     const detailId = BigInt(input.detailId);
+    const taskId = input.taskId != null && input.taskId !== '' ? BigInt(input.taskId) : null;
+
     const detail = await this.prisma.details.findFirst({
       where: { id: detailId, storage_id: storageId },
     });
@@ -375,11 +377,37 @@ export class DetailsService {
     const currentCount = detail.count ?? 0;
     const countResult = currentCount + input.count_diff;
     if (countResult < 0) {
-      throw new Error(
-        'Resulting count would be negative. Current count: ' + currentCount,
-      );
+      throw new Error('Resulting count would be negative. Current count: ' + currentCount);
     }
     const now = new Date();
+
+    // Якщо це списання в наряд — перевіряємо чи вже є запис для цієї деталі
+    if (taskId && input.count_diff < 0) {
+      const existing = await this.prisma.detail_histories.findFirst({
+        where: { detail_id: detailId, task_id: taskId, action_type: 2 },
+      });
+
+      if (existing) {
+        // Оновлюємо існуючий запис
+        const history = await this.prisma.$transaction(async (tx: PrismaClient) => {
+          await tx.details.update({
+            where: { id: detailId },
+            data: { count: countResult, updated_at: now },
+          });
+          return tx.detail_histories.update({
+            where: { id: existing.id },
+            data: {
+              count_diff: existing.count_diff! + input.count_diff,
+              count_result: countResult,
+              updated_at: now,
+            },
+          });
+        });
+        return bigintToString(history);
+      }
+    }
+
+    // Створюємо новий запис
     const history = await this.prisma.$transaction(async (tx: PrismaClient) => {
       await tx.details.update({
         where: { id: detailId },
@@ -393,10 +421,7 @@ export class DetailsService {
           action_type: input.action_type,
           count_diff: input.count_diff,
           count_result: countResult,
-          task_id:
-            input.taskId != null && input.taskId !== ''
-              ? BigInt(input.taskId)
-              : null,
+          task_id: taskId,
           price: input.price ?? null,
           comment: input.comment ?? null,
           created_at: now,
