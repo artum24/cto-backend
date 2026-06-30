@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import puppeteer from 'puppeteer';
+import { PDFDocument, rgb, StandardFonts, PDFPage, RGB } from 'pdf-lib';
 
 export interface InvoiceLineItem {
   name: string;
@@ -35,161 +35,214 @@ export interface InvoicePdfData {
   logoUrl?: string;
 }
 
+function hexToRgb(hex: string): RGB {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16) / 255;
+  const g = parseInt(h.slice(2, 4), 16) / 255;
+  const b = parseInt(h.slice(4, 6), 16) / 255;
+  return rgb(r, g, b);
+}
+
+function safeText(text: string): string {
+  return text
+    .replace(/—/g, '-')
+    .replace(/–/g, '-')
+    .replace(/’/g, "'")
+    .replace(/[^\x00-\x7EЀ-ӿ]/g, '?');
+}
+
 @Injectable()
 export class PdfGeneratorService {
   async generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
-    const accent = data.accentColor ?? '#2563eb';
+    const accentHex = data.accentColor ?? '#2563eb';
+    const accent = hexToRgb(accentHex);
+    const accentLight = hexToRgb(accentHex + '22');
+    const gray = rgb(0.42, 0.44, 0.50);
+    const lightGray = rgb(0.97, 0.98, 0.99);
+    const darkText = rgb(0.06, 0.09, 0.16);
+    const white = rgb(1, 1, 1);
+    const borderGray = rgb(0.9, 0.91, 0.93);
+
     const footerNote = data.footerNote ?? 'Дякуємо за довіру!';
     const dateStr = data.createdAt.toLocaleDateString('uk-UA');
 
-    const vehicleStr = [data.vehicle.makeName, data.vehicle.modelName, data.vehicle.year]
+    const doc = await PDFDocument.create();
+    const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
+    const regularFont = await doc.embedFont(StandardFonts.Helvetica);
+
+    const pageWidth = 595;
+    const pageHeight = 842;
+    const margin = 32;
+    const contentWidth = pageWidth - margin * 2;
+
+    const page = doc.addPage([pageWidth, pageHeight]);
+    let y = pageHeight;
+
+    const drawRect = (px: number, py: number, w: number, h: number, color: RGB) => {
+      page.drawRectangle({ x: px, y: py, width: w, height: h, color });
+    };
+
+    const drawLine = (x1: number, y1: number, x2: number, y2: number, color: RGB = borderGray) => {
+      page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: 0.5, color });
+    };
+
+    const drawText = (
+      text: string,
+      x: number,
+      py: number,
+      opts: { size?: number; font?: typeof boldFont; color?: RGB; align?: 'left' | 'right' | 'center'; maxWidth?: number } = {},
+    ) => {
+      const size = opts.size ?? 10;
+      const font = opts.font ?? regularFont;
+      const color = opts.color ?? darkText;
+      const safe = safeText(String(text));
+
+      let truncated = safe;
+      if (opts.maxWidth) {
+        while (truncated.length > 0 && font.widthOfTextAtSize(truncated, size) > opts.maxWidth) {
+          truncated = truncated.slice(0, -1);
+        }
+        if (truncated !== safe) truncated = truncated.slice(0, -1) + '…';
+      }
+
+      let dx = x;
+      if (opts.align === 'right') {
+        dx = x - font.widthOfTextAtSize(truncated, size);
+      } else if (opts.align === 'center') {
+        dx = x - font.widthOfTextAtSize(truncated, size) / 2;
+      }
+      page.drawText(truncated, { x: dx, y: py, size, font, color });
+    };
+
+    // ── HEADER ─────────────────────────────────────────────────────────────
+    const headerH = 64;
+    drawRect(0, pageHeight - headerH, pageWidth, headerH, accent);
+    y = pageHeight - headerH;
+
+    const companyTitle = safeText(data.company.title || 'Замовлення-наряд');
+    drawText(companyTitle, margin, y + 38, { size: 16, font: boldFont, color: white });
+
+    const addrParts = [data.company.city, data.company.address].filter(Boolean);
+    if (addrParts.length) {
+      drawText(safeText(addrParts.join(', ')), margin, y + 22, { size: 9, color: rgb(0.85, 0.90, 1) });
+    }
+    if (data.company.phone) {
+      drawText(safeText(data.company.phone), margin, y + 12, { size: 9, color: rgb(0.85, 0.90, 1) });
+    }
+
+    const invoiceLabel = `Nr ZN-${data.invoiceId}`;
+    drawText(invoiceLabel, pageWidth - margin, y + 38, { size: 11, font: boldFont, color: white, align: 'right' });
+    drawText(`vid ${dateStr}`, pageWidth - margin, y + 24, { size: 9, color: rgb(0.85, 0.90, 1), align: 'right' });
+
+    y -= 16;
+
+    // ── CLIENT / VEHICLE ────────────────────────────────────────────────────
+    const halfW = (contentWidth - 16) / 2;
+
+    drawText('Klient', margin, y, { size: 8, font: boldFont, color: gray });
+    y -= 14;
+    drawText(safeText(data.client.name), margin, y, { size: 11, font: boldFont, maxWidth: halfW });
+    y -= 13;
+    if (data.client.phone) {
+      drawText(safeText(data.client.phone), margin, y, { size: 9, color: gray });
+      y -= 12;
+    }
+
+    const vehicleParts = [data.vehicle.makeName, data.vehicle.modelName, data.vehicle.year]
       .filter(Boolean)
       .join(' ');
+    const col2x = margin + halfW + 16;
+    let col2y = y + (data.client.phone ? 39 : 27);
+    drawText('Avto', col2x, col2y, { size: 8, font: boldFont, color: gray });
+    col2y -= 14;
+    drawText(safeText(vehicleParts || '—'), col2x, col2y, { size: 11, font: boldFont, maxWidth: halfW });
+    col2y -= 13;
+    if (data.vehicle.number) {
+      drawText(safeText(data.vehicle.number), col2x, col2y, { size: 9, color: gray });
+    }
 
-    const addr = [data.company.city, data.company.address].filter(Boolean).join(', ');
+    y -= 10;
+    drawLine(margin, y, pageWidth - margin, y, borderGray);
+    y -= 14;
 
-    const renderRows = (items: InvoiceLineItem[]) =>
-      items
-        .map(
-          (item, i) => `
-          <tr class="${i % 2 === 0 ? 'row-even' : ''}">
-            <td>${item.name}</td>
-            <td class="center">${item.quantity}</td>
-            <td class="right">${this.fmt(item.unitPrice)} ₴</td>
-            <td class="right bold">${this.fmt(item.quantity * item.unitPrice)} ₴</td>
-          </tr>`,
-        )
-        .join('');
+    if (data.taskTitle) {
+      drawText(safeText(`Naryad: ${data.taskTitle}`), margin, y, { size: 9, color: gray });
+      y -= 16;
+    }
 
-    const html = `<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    @page { margin: 0; size: A4; }
-    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #0f172a; font-size: 13px; }
+    // ── TABLE HEADER ────────────────────────────────────────────────────────
+    const col = {
+      name: { x: margin, w: contentWidth - 160 },
+      qty: { x: margin + contentWidth - 160, w: 40 },
+      price: { x: margin + contentWidth - 120, w: 60 },
+      total: { x: margin + contentWidth - 60, w: 60 },
+    };
 
-    .card { background: #fff; min-height: 100vh; }
+    const drawTableHeader = (py: number) => {
+      drawRect(margin, py - 4, contentWidth, 20, accent);
+      drawText('Najmenuvanniya', col.name.x + 4, py + 3, { size: 8, font: boldFont, color: white });
+      drawText('K-st', col.qty.x + col.qty.w / 2, py + 3, { size: 8, font: boldFont, color: white, align: 'center' });
+      drawText('Tsina', col.price.x + col.price.w, py + 3, { size: 8, font: boldFont, color: white, align: 'right' });
+      drawText('Suma', col.total.x + col.total.w, py + 3, { size: 8, font: boldFont, color: white, align: 'right' });
+    };
 
-    .header { padding: 20px 24px; background-color: ${accent}; color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .logo { height: 36px; width: auto; padding: 4px; background: rgba(255,255,255,0.12); border-radius: 6px; }
-    .header-title { font-size: 18px; font-weight: 700; }
-    .header-right { text-align: right; font-size: 12px; opacity: 0.92; }
+    drawTableHeader(y);
+    y -= 18;
 
-    .divider { margin: 0 24px; height: 1px; background: #e5e7eb; }
+    const drawGroupLabel = (label: string, py: number) => {
+      drawText(label, col.name.x + 4, py, { size: 7.5, font: boldFont, color: accent });
+    };
 
-    .section { padding: 14px 24px; }
-    .section-title { font-weight: 700; margin-bottom: 6px; font-size: 13px; }
-    .muted { color: #6b7280; font-size: 12px; }
+    const drawRow = (item: InvoiceLineItem, py: number, even: boolean) => {
+      if (even) drawRect(margin, py - 4, contentWidth, 18, lightGray);
+      drawText(safeText(item.name), col.name.x + 4, py + 2, { size: 9, maxWidth: col.name.w - 8 });
+      drawText(String(item.quantity), col.qty.x + col.qty.w / 2, py + 2, { size: 9, align: 'center' });
+      drawText(`${this.fmt(item.unitPrice)} grn`, col.price.x + col.price.w, py + 2, { size: 9, align: 'right' });
+      drawText(`${this.fmt(item.quantity * item.unitPrice)} grn`, col.total.x + col.total.w, py + 2, { size: 9, font: boldFont, align: 'right' });
+      drawLine(margin, py - 4, pageWidth - margin, py - 4, borderGray);
+    };
 
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    let rowIdx = 0;
 
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { background-color: ${accent}; color: #fff; padding: 7px 8px; text-align: left; font-weight: 600; font-size: 11px; }
-    th.right, td.right { text-align: right; }
-    th.center, td.center { text-align: center; }
-    td { padding: 7px 8px; }
-    tr.row-even td { background: #f9fafb; }
-    .bold { font-weight: 700; }
+    if (data.services.length > 0) {
+      drawGroupLabel('POSLUHY', y);
+      y -= 16;
+      for (const item of data.services) {
+        drawRow(item, y, rowIdx % 2 === 0);
+        y -= 18;
+        rowIdx++;
+      }
+    }
 
-    .group-label { font-size: 10px; font-weight: 700; color: ${accent}; padding: 6px 8px 3px; letter-spacing: 0.05em; }
+    if (data.parts.length > 0) {
+      drawGroupLabel('ZAPCHASTYNY', y);
+      y -= 16;
+      for (const item of data.parts) {
+        drawRow(item, y, rowIdx % 2 === 0);
+        y -= 18;
+        rowIdx++;
+      }
+    }
 
-    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; font-weight: 700; font-size: 15px; }
-    .total-amount { color: ${accent}; font-size: 17px; }
-
-    .company-info { font-size: 11px; color: #6b7280; margin-top: 3px; }
-
-    .footer { padding: 12px 24px; background: #f8fafc; font-size: 11px; color: #6b7280; border-top: 1px solid #e5e7eb; }
-  </style>
-</head>
-<body>
-<div class="card">
-
-  <div class="header">
-    <div class="header-left">
-      ${data.logoUrl ? `<img src="${data.logoUrl}" alt="Logo" class="logo" />` : ''}
-      <div>
-        <div class="header-title">${data.company.title || 'Замовлення-наряд'}</div>
-        ${addr ? `<div class="company-info" style="color:rgba(255,255,255,0.8)">${addr}</div>` : ''}
-        ${data.company.phone ? `<div class="company-info" style="color:rgba(255,255,255,0.8)">${data.company.phone}</div>` : ''}
-      </div>
-    </div>
-    <div class="header-right">
-      <div>№ ZN-${data.invoiceId}</div>
-      <div>від ${dateStr}</div>
-    </div>
-  </div>
-
-  <div class="section two-col">
-    <div>
-      <div class="section-title">Клієнт</div>
-      <div>${data.client.name}</div>
-      ${data.client.phone ? `<div class="muted">${data.client.phone}</div>` : ''}
-    </div>
-    <div>
-      <div class="section-title">Авто</div>
-      <div>${vehicleStr || '—'}</div>
-      ${data.vehicle.number ? `<div class="muted">${data.vehicle.number}</div>` : ''}
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="section">
-    ${data.taskTitle ? `<div class="muted" style="margin-bottom:10px">Наряд: ${data.taskTitle}</div>` : ''}
-
-    <table>
-      <thead>
-        <tr>
-          <th>Найменування</th>
-          <th class="center" style="width:50px">К-сть</th>
-          <th class="right" style="width:90px">Ціна</th>
-          <th class="right" style="width:90px">Сума</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${
-          data.services.length > 0
-            ? `<tr><td colspan="4" class="group-label">ПОСЛУГИ</td></tr>${renderRows(data.services)}`
-            : ''
-        }
-        ${
-          data.parts.length > 0
-            ? `<tr><td colspan="4" class="group-label">ЗАПЧАСТИНИ</td></tr>${renderRows(data.parts)}`
-            : ''
-        }
-      </tbody>
-    </table>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="total-row">
-    <span>Разом до сплати</span>
-    <span class="total-amount">${this.fmt(data.totalAmount)} ₴</span>
-  </div>
-
-  <div class="footer">${footerNote}</div>
-
-</div>
-</body>
-</html>`;
-
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    // ── TOTAL ───────────────────────────────────────────────────────────────
+    y -= 4;
+    drawLine(margin, y, pageWidth - margin, y, borderGray);
+    y -= 18;
+    drawText('Razom do splaty', margin, y, { size: 12, font: boldFont });
+    drawText(`${this.fmt(data.totalAmount)} grn`, pageWidth - margin, y, {
+      size: 14,
+      font: boldFont,
+      color: accent,
+      align: 'right',
     });
 
-    try {
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'load' });
-      const pdf = await page.pdf({ format: 'A4', printBackground: true });
-      return Buffer.from(pdf);
-    } finally {
-      await browser.close();
-    }
+    // ── FOOTER ──────────────────────────────────────────────────────────────
+    drawRect(0, 0, pageWidth, 30, lightGray);
+    drawLine(0, 30, pageWidth, 30, borderGray);
+    drawText(safeText(footerNote), margin, 10, { size: 9, color: gray });
+
+    const pdfBytes = await doc.save();
+    return Buffer.from(pdfBytes);
   }
 
   private fmt(amount: number): string {
