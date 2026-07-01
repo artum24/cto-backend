@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
 import { bigintToString } from '@/common/mappers/bigint.mapper';
 import { VehiclesInput } from '@/modules/vehicle/inputs/vehicles.input';
@@ -23,7 +25,10 @@ function mapVehicle(v: VehicleWithClient) {
 
 @Injectable()
 export class VehicleService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cache: Cache,
+  ) {}
 
   async findByClientId(id: number | string) {
     const clientId = BigInt(String(id));
@@ -116,20 +121,34 @@ export class VehicleService {
     };
   }
 
+  private static readonly CATALOG_TTL = 24 * 60 * 60 * 1000; // 24h in ms
+
   async findAllModelsByMake(vehicleMakeId: number, vehicleType: VehicleType) {
+    const key = `models:${vehicleType}:${vehicleMakeId}`;
+    const cached = await this.cache.get<object[]>(key);
+    if (cached) return cached;
+
     const models = await this.prisma.vehicle_models.findMany({
       where: { vehicle_make_id: vehicleMakeId, vehicle_type: vehicleType },
     });
-    return models.map(bigintToString);
+    const result = models.map(bigintToString);
+    await this.cache.set(key, result, VehicleService.CATALOG_TTL);
+    return result;
   }
 
   async findAllMakesByType(vehicleType: VehicleType) {
+    const key = `makes:${vehicleType}`;
+    const cached = await this.cache.get<object[]>(key);
+    if (cached) return cached;
+
     const makes = await this.prisma.vehicle_makes.findMany({
       where: {
         vehicle_make_types: { some: { vehicle_type: vehicleType } },
       },
     });
-    return makes.map(bigintToString);
+    const result = makes.map(bigintToString);
+    await this.cache.set(key, result, VehicleService.CATALOG_TTL);
+    return result;
   }
 
   async create(companyId: bigint, input: CreateVehicleInput) {

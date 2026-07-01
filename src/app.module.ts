@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
+import { createKeyv } from '@keyv/redis';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
@@ -58,9 +60,18 @@ const graphQLIntrospection = enableApolloSandbox
     // Rate limiting: 200 requests per 60 seconds per IP
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 200 }]),
 
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        stores: [createKeyv(config.get<string>('REDIS_URL')!)],
+      }),
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
+        REDIS_URL: Joi.string().uri().required(),
         NOVA_POSHTA_API_KEY: Joi.string().required(),
         DATABASE_URL: Joi.string().uri().required(),
         SUPABASE_JWT_SECRET: Joi.string().optional(),
